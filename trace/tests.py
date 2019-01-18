@@ -51,7 +51,7 @@ class TestGeometry(TestCase):
         generic.pos = np.array([3,6,8])
         self.assertSameArray(generic.pos, np.array([3,6,8]))
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             generic.n = 0.4
 
         with self.assertRaises(TypeError):
@@ -76,6 +76,26 @@ class TestGeometry(TestCase):
 
         with self.assertRaises(NotImplementedError):
             generic.refract(None, None, None)
+
+class TestGeometrySphere(TestCase):
+
+    def test_properties(self):
+        with self.assertRaises(ValueError):
+            geometry.Sphere(1, 2, 1)
+
+        with self.assertRaises(ValueError):
+            geometry.Sphere(1, 1, 2)
+
+        with self.assertRaises(TypeError):
+            geometry.Sphere(True, None, "Happy")
+
+    def test_defaults(self):
+        lens = geometry.Sphere(1, 1, 1)
+        self.assertSameArray(lens._Sphere__axi, np.array([0,0,1]))
+
+    def test_contains(self):
+        # TODO
+        pass
 
 if __name__ == "__main__":
     unittest.main()
