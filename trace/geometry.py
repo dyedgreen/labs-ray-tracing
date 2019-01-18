@@ -64,6 +64,9 @@ class Geometry:
         """
         raise NotImplementedError
 
+    def __str__(self):
+        return "{}(n={}, pos={})".format(type(self).__name__, self.n, self.pos)
+
 class Sphere(Geometry):
     """
     Represents a spherical surface lens.
@@ -82,14 +85,14 @@ class Sphere(Geometry):
         self.__rad = 1/self.__crv
 
     def contains(self, pos):
-        pr = self.pos - pos # pos relative to sphere origin
+        pr = pos - self.pos # pos relative to sphere origin
         p_axi = self.__axi.dot(pr) # projection on lens axis
         p_apt = vabs(pr - self.__axi * p_axi) # projection on radial (aperture)
 
         if self.__rad > 0:
-            return self.__rad <= vabs(pr) and self.__apt >= p_apt and self.__rad - self.__dep <= p_axi
+            return self.__rad >= vabs(pr) and self.__apt >= p_apt and self.__rad - self.__dep <= p_axi
         else:
-            return -self.__rad >= vabs(pr) and self.__apt >= p_apt and p_axi < 0 and self.__rad - self.__dep <= p_axi
+            return -self.__rad <= vabs(pr) and self.__apt >= p_apt and p_axi < 0 and self.__rad - self.__dep <= p_axi
 
     def intersect(self, ray):
         pass

@@ -1,5 +1,5 @@
 """
-Ray tracer module
+Ray Tracing Module
 
 FIXME: Add more detailed docs here...
 """
