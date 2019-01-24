@@ -4,15 +4,18 @@ the rays.
 """
 
 import numpy as _np
-
-def vabs(vec):
-    return _np.linalg.norm(vec)
+import _utils as _u
 
 class Geometry:
     """
     Base class for all geometry objects. Geometry
     objects are immutable, except for their base-
     properties pos and n.
+
+    Notice that contains, intersect, and refract
+    do avoid runtime checks and expect correct
+    arguments. This is done, since they will be
+    called very often during the simulation.
     """
 
     def __init__(self, pos=_np.zeros(3), n=1.0):
@@ -103,18 +106,22 @@ class Sphere(Geometry):
     def contains(self, pos):
         pr = pos - self.pos # pos relative to sphere origin
         p_axi = self.__axi.dot(pr) # projection on lens axis
-        p_apt = vabs(pr - self.__axi * p_axi) # projection on radial (aperture)
+        p_apt = _u.vabs(pr - self.__axi * p_axi) # projection on radial (aperture)
 
         if self.__rad > 0:
-            return self.__rad >= vabs(pr) and self.__apt >= p_apt and self.__rad - self.__dep <= p_axi
+            return self.__rad >= _u.vabs(pr) and self.__apt >= p_apt and self.__rad - self.__dep <= p_axi
         else:
-            return -self.__rad <= vabs(pr) and self.__apt >= p_apt and p_axi < 0 and self.__rad - self.__dep <= p_axi
+            return -self.__rad <= _u.vabs(pr) and self.__apt >= p_apt and p_axi < 0 and self.__rad - self.__dep <= p_axi
 
     def intersect(self, ray):
+        # We don't intercept, if we are inside the
+        # lens already
+        if self.contains(ray.pos):
+            return None
         # Find intersections of ray with sphere, then check
         # if the point is contained
         d = self.pos - ray.pos
-        d_square = vabs(d)**2
+        d_square = _u.vabs(d)**2
         r_square = self.__rad**2
         d_dot_k = d.dot(ray.k_hat)
         sqrt = _np.sqrt(d_dot_k**2 - d_square + r_square)
@@ -131,6 +138,22 @@ class Sphere(Geometry):
             return inter_2
         return None
 
-    def refract(self, ray):
-        # TODO
-        pass
+    def refract(self, ray, intersect):
+        # Obtain basis for surface normal
+        normal = intersect - self.pos
+        n, x, y = _u.basis(normal)
+        # Update k vector
+        k_n = ray.k.dot(n)
+        k_x = ray.k.dot(x)
+        k_y = ray.k.dot(y)
+        sin_1_inv = _u.vabs(ray.k) / k_n
+        sqrt = np.sqrt(sin_1_inv**2 / 4 - k_x**2 - k_y**2)
+        k_1 = sin_1_inv / 2 + sqrt
+        k_2 = sin_1_inv / 2 - sqrt
+        # Choose the one that is in the correct direction
+        k_n = k_1 if k_1 * k_n >= 0 else k_2
+        wavelen = ray.wavelength
+        ray.k = n*k_n + x*k_x + y*k_y
+        ray.wavelength = wavelen
+        # Update ray position
+        ray.pos = intersect

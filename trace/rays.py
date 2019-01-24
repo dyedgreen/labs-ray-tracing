@@ -1,8 +1,9 @@
 """
-Provides Ray() objects
+Provides Ray() objects.
 """
 
 import numpy as _np
+import _utils as _u
 
 class Ray:
     """
@@ -31,13 +32,23 @@ class Ray:
 
     @property
     def k_hat(self):
-        return self._k / _np.linalg.norm(self._k)
+        return self._k / _u.vabs(self._k)
+
+    @property
+    def wavelength(self):
+        return 2 * _np.pi / _u.vabs(self._k)
 
     @k.setter
     def k(self, val):
         if not type(val) == type(self._k) or len(val) != 3:
             raise TypeError
         self._k = val
+
+    @wavelength.setter
+    def wavelength(self, val):
+        if not type(val) == float:
+            raise TypeError
+        self._k *= 2 * np.pi / val / _u.vabs(self._k)
 
     @property
     def path(self):
