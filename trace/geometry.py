@@ -69,7 +69,23 @@ class Geometry:
 
 class Sphere(Geometry):
     """
-    Represents a spherical surface lens.
+    Represents a spherical surface lens. Refraction
+    only occurs on the spherical surface.
+
+    The lens is described by several parameters:
+          -------|    /\\
+         /       |    ||
+       /         | aperture
+     /           |    ||
+    /  <-depth-> |    \\/
+    | <-- 1/curvature -->  X (position)
+    \\            |
+     \\           |
+       \\         |
+         \\       |
+          -------|
+
+    <--- axis direction
     """
 
     def __init__(self, curvature, aperture, depth, axis=_np.array([0,0,1]), **kwargs):
@@ -95,7 +111,26 @@ class Sphere(Geometry):
             return -self.__rad <= vabs(pr) and self.__apt >= p_apt and p_axi < 0 and self.__rad - self.__dep <= p_axi
 
     def intersect(self, ray):
-        pass
+        # Find intersections of ray with sphere, then check
+        # if the point is contained
+        d = self.pos - ray.pos
+        d_square = vabs(d)**2
+        r_square = self.__rad**2
+        d_dot_k = d.dot(ray.k_hat)
+        sqrt = _np.sqrt(d_dot_k**2 - d_square + r_square)
+        l_1 = d_dot_k + sqrt
+        l_2 = d_dot_k - sqrt
+
+        # Check if contained
+        inter_1 = ray.pos + l_1 * ray.k_hat
+        inter_2 = ray.pos + l_2 * ray.k_hat
+
+        if self.contains(inter_1):
+            return inter_1
+        elif self.contains(inter_2):
+            return inter_2
+        return None
 
     def refract(self, ray):
+        # TODO
         pass

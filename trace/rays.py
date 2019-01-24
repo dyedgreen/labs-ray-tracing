@@ -29,6 +29,10 @@ class Ray:
     def k(self):
         return self._k
 
+    @property
+    def k_hat(self):
+        return self._k / _np.linalg.norm(self._k)
+
     @k.setter
     def k(self, val):
         if not type(val) == type(self._k) or len(val) != 3:
