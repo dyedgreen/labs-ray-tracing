@@ -4,7 +4,7 @@ the rays.
 """
 
 import numpy as _np
-import _utils as _u
+from . import _utils as _u
 
 class Geometry:
     """
@@ -60,15 +60,45 @@ class Geometry:
         """
         raise NotImplementedError
 
-    def refract(self, intersect, ray, n):
+    def normal(self, intersect):
+        """
+        Return surface normal at
+        intersect.
+        """
+        raise NotImplementedError
+
+    def refract(self, ray, intersect, n):
         """
         Refract the ray and update it's
         position and k vector.
         """
-        raise NotImplementedError
+        # Obtain surface normal
+        normal = self.normal(intersect)
+        
+        # Gather vector component perp. to
+        # normal
+        k_p = ray.k - normal * normal.dot(ray.k)
+        k_p_vabs = _u.vabs(k_p)
+        if  k_p_vabs != 0:
+            k_p = k_p / k_p_vabs
+        
+        sin = n / self.n * k_p_vabs / _u.vabs(ray.k)
+        wavelength = ray.wavelength
+
+        # Note: Prevent 0 devisions by using + 1e-20
+        ray.k = \
+            k_p * _u.sign(k_p_vabs) * abs(sin * k_p_vabs / _np.sqrt(1 - sin*sin + 1e-20)) \
+            + ray.k - k_p * k_p_vabs
+
+        ray.wavelength = wavelength
+        # Update ray position
+        ray.pos = intersect
 
     def __str__(self):
         return "{}(n={}, pos={})".format(type(self).__name__, self.n, self.pos)
+
+    def __repr__(self):
+        return str(self)
 
 class Sphere(Geometry):
     """
@@ -128,32 +158,52 @@ class Sphere(Geometry):
         l_1 = d_dot_k + sqrt
         l_2 = d_dot_k - sqrt
 
+        # We cant to check the smaller l first
+        # Don't need absolute value, as l_n > 0
+        # is enforced below
+        if l_1 > l_2:
+            l_1, l_2 = l_2, l_1
+
         # Check if contained
         inter_1 = ray.pos + l_1 * ray.k_hat
         inter_2 = ray.pos + l_2 * ray.k_hat
 
-        if self.contains(inter_1):
+        if l_1 > 0 and self.contains(inter_1):
             return inter_1
-        elif self.contains(inter_2):
+        elif l_2 > 0 and self.contains(inter_2):
             return inter_2
         return None
 
-    def refract(self, ray, intersect):
-        # Obtain basis for surface normal
-        normal = intersect - self.pos
-        n, x, y = _u.basis(normal)
-        # Update k vector
-        k_n = ray.k.dot(n)
-        k_x = ray.k.dot(x)
-        k_y = ray.k.dot(y)
-        sin_1_inv = _u.vabs(ray.k) / k_n
-        sqrt = np.sqrt(sin_1_inv**2 / 4 - k_x**2 - k_y**2)
-        k_1 = sin_1_inv / 2 + sqrt
-        k_2 = sin_1_inv / 2 - sqrt
-        # Choose the one that is in the correct direction
-        k_n = k_1 if k_1 * k_n >= 0 else k_2
-        wavelen = ray.wavelength
-        ray.k = n*k_n + x*k_x + y*k_y
-        ray.wavelength = wavelen
-        # Update ray position
-        ray.pos = intersect
+    def normal(self, intersect):
+        n = intersect - self.pos
+        return n / _u.vabs(n)
+
+class Screen(Geometry):
+    """
+    Implements an infinite optical
+    screen, used to record images.
+    """
+
+    def __init__(self, normal=_np.array([0, 0, 1]), **kwargs):
+        super().__init__(**kwargs)
+        if type(normal) != _np.ndarray or len(normal) != 3:
+            raise TypeError
+        self.__nml = normal / _u.vabs(normal)
+
+    def contains(self, pos):
+        return (self.pos - pos).dot(self.__nml) == 0
+
+    def intersect(self, ray):
+        a = ray.k_hat.dot(self.__nml)
+        if a == 0:
+            return ray.pos if self.contains(ray.pos) else None
+        d = (self.pos - ray.pos).dot(self.__nml) / a
+        if d >= 0:
+            return ray.pos + ray.k_hat * d
+        return None
+
+    def normal(self, intersect=None):
+        return self.__nml
+
+    def refract(self):
+        raise AttributeError

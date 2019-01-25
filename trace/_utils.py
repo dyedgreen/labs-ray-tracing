@@ -20,3 +20,6 @@ def basis(x):
     y = y / vabs(y)
     z = _np.cross(x, y)
     return (x, y, z)
+
+def sign(x):
+    return 1 if x >= 0 else -1

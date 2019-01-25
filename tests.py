@@ -4,17 +4,23 @@ Provides unit tests
 
 import unittest
 import numpy as np
-import rays
-import geometry
-import _utils
+from trace import rays
+from trace import geometry
+from trace import _utils
 
 class TestCase(unittest.TestCase):
 
     def assertSameArray(self, a, b):
+        """
+        Helper to compare arrays
+        """
         if not np.array_equal(a, b):
             raise AssertionError("{} is not {}".format(a, b))
 
     def assertApproxArray(self, a, b, eps=1e-10):
+        """
+        assertAlmostEqual() for arrays
+        """
         lower = a - np.full_like(a, eps, dtype=float)
         upper = a + np.full_like(a, eps, dtype=float)
         if not np.all(np.less(lower, b)) or not np.all(np.less(b, upper)):
@@ -53,6 +59,16 @@ class TestUtils(TestCase):
             self.assertAlmostEqual(0, y.dot(z))
             self.assertAlmostEqual(1, z.dot(z))
 
+    def test_sign(self):
+        cases_pos = [2,34,456.45,23.1,34.0,1e-15]
+        cases_neg = [-2,-34,-456.45,-23.1,-34.0,-1e-15]
+
+        for val in cases_pos:
+            self.assertEqual(1, _utils.sign(val))
+
+        for val in cases_neg:
+            self.assertEqual(-1, _utils.sign(val))
+
 class TestRays(TestCase):
 
     def test_properties(self):
@@ -70,13 +86,21 @@ class TestRays(TestCase):
         self.assertEqual(len(ray), len(ray.path))
         self.assertSameArray(ray[0], ray.path[0])
 
+        wavelen = 1
+        ray.wavelength = wavelen
+        self.assertAlmostEqual(wavelen, ray.wavelength)
+
+        ray.k = np.array([1, 0, 0])
+        self.assertAlmostEqual(ray.wavelength, 2 * np.pi)
+
         with self.assertRaises(TypeError):
             ray.k = [1,2,3]
 
         with self.assertRaises(TypeError):
             ray.pos = 6.4
 
-        # TODO: Test wavelength property
+        with self.assertRaises(ValueError):
+            ray.wavelength = "Hello World!"
 
     def test_defaults(self):
         ray = rays.Ray()
@@ -116,6 +140,9 @@ class TestGeometry(TestCase):
 
         with self.assertRaises(NotImplementedError):
             generic.intersect(None)
+
+        with self.assertRaises(NotImplementedError):
+            generic.normal(None)
 
         with self.assertRaises(NotImplementedError):
             generic.refract(None, None, None)
@@ -162,20 +189,70 @@ class TestGeometrySphere(TestCase):
         ray.k = np.array([0, 0, -1])
         self.assertSameArray(lens.intersect(ray), np.array([0,0,1]))
         ray.k = np.array([0, 1, -2])
-        self.assertApproxArray(lens.intersect(ray), np.array([0,1,0]))
-        ray.k = np.array([-np.sqrt(1/2), np.sqrt(1/2), -2])
-        self.assertApproxArray(lens.intersect(ray), np.array([-np.sqrt(1/2), np.sqrt(1/2),0]))
+        self.assertApproxArray(lens.intersect(ray), np.array([0,.6,.8]))
 
         ray.pos = np.array([0, 0, 0.1])
         ray.k = np.array([0, 0, 1])
         self.assertEqual(None, lens.intersect(ray))
 
+        ray.pos = np.array([0, 0, -1])
+        ray.k = np.array([0, 0, -1])
+        self.assertEqual(None, lens.intersect(ray))
+
+        ray = rays.Ray(origin=np.array([-1, 0, 2]))
+        ray.k = np.array([1, 0, -1])
+        self.assertApproxArray(np.array([0, 0, 1]), lens.intersect(ray))
+
         with self.assertRaises(AttributeError):
             lens.intersect(None)
 
-    @unittest.skip("Not yet implemented")
     def test_refract(self):
-        raise NotImplementedError
+        lens = geometry.Sphere(1, 1, 1, n=1.0)
+
+        ray = rays.Ray(origin=np.array([0, 0, 2]))
+        ray.k = np.array([0, 0, -1])
+
+        inter = lens.intersect(ray)
+        lens.refract(ray, inter, 1.0)
+        self.assertApproxArray(ray.k, np.array([0, 0, -1]))
+        self.assertSameArray(inter, ray.pos)
+        self.assertEqual(None, lens.intersect(ray))
+
+        ray = rays.Ray(origin=np.array([0, 0, 1+1e-5]))
+        ray.k = np.array([0, -1, -1])
+
+        inter = lens.intersect(ray)
+        lens.refract(ray, inter, 1.0)
+        self.assertApproxArray(ray.k, np.array([0, -1, -1]), eps=1e-4)
+        self.assertSameArray(inter, ray.pos)
+        self.assertEqual(None, lens.intersect(ray))
+
+class TestGeometryScreen(TestCase):
+
+    def test_properties(self):
+        # Defaults
+        screen = geometry.Screen()
+        self.assertSameArray(np.array([0, 0, 1]), screen.normal())
+
+        # Normalizes
+        normals = [np.array([1, 5, 7]), np.array([1, -5.7, 23]), np.array([1.7, 5.0, -2])]
+        for n in normals:
+            screen = geometry.Screen(normal=n)
+            self.assertAlmostEqual(1, _utils.vabs(screen.normal()))
+
+        screen = geometry.Screen(pos=np.array([0, 0, 1]))
+
+        ray = rays.Ray()
+        ray.k = np.array([0, 0, 1])
+        self.assertSameArray(np.array([0, 0, 1]), screen.intersect(ray))
+
+        ray = rays.Ray()
+        ray.k = np.array([1, 1, 0])
+        self.assertSameArray(None, screen.intersect(ray))
+
+        ray = rays.Ray()
+        ray.k = np.array([0, 0, -1])
+        self.assertSameArray(None, screen.intersect(ray))
 
 if __name__ == "__main__":
     unittest.main()

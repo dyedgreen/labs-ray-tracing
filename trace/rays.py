@@ -3,7 +3,7 @@ Provides Ray() objects.
 """
 
 import numpy as _np
-import _utils as _u
+from . import _utils as _u
 
 class Ray:
     """
@@ -11,10 +11,11 @@ class Ray:
     model optical rays.
     """
 
-    def __init__(self, origin=_np.zeros(3)):
+    def __init__(self, origin=_np.zeros(3), k=_np.zeros(3)):
         self._path = []
         self._k = _np.zeros(3)
         self.pos = origin
+        self.k = k
 
     @property
     def pos(self):
@@ -46,9 +47,7 @@ class Ray:
 
     @wavelength.setter
     def wavelength(self, val):
-        if not type(val) == float:
-            raise TypeError
-        self._k *= 2 * np.pi / val / _u.vabs(self._k)
+        self.k = 2 * _np.pi / float(val) * self.k_hat
 
     @property
     def path(self):
@@ -62,3 +61,6 @@ class Ray:
 
     def __str__(self):
         return "Ray(k={}, path={})".format(self.k, self.path)
+
+    def __repr__(self):
+        return str(self)
