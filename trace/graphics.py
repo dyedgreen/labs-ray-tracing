@@ -6,10 +6,13 @@ render rays and screens.
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as _plt
 
+from . import _utils as _u
+
+
 def render_3d(scene, extend=1.0):
     """
-    Render all rays as 3d
-    lines using matplotlib
+    Render all rays in scene
+    as 3d lines using matplotlib
     as a back-end.
     """
     fig = _plt.figure()
@@ -25,4 +28,16 @@ def render_3d(scene, extend=1.0):
             y.append(ray.pos[1] + ray.k[1] * extend)
             z.append(ray.pos[2] + ray.k[2] * extend)
         ax.plot(x, y, z)
+    return fig
+
+def render_2d(screen):
+    """
+    Render all rays that hit
+    a screen using matplotlib
+    as a back-end.
+    """
+    fig, ax = _plt.subplots()
+    n, x, y = _u.basis(screen.normal)
+    for ray in screen.hits:
+        ax.scatter(x.dot(ray.pos),y.dot(ray.pos))
     return fig

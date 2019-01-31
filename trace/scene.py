@@ -131,7 +131,7 @@ class Scene:
         for ray in self.__ray:
             step = 0
             intersect = None
-            current_n = self.__n # Test if god choice...
+            current_n = self.__n # Test if good choice...
             while not ray.terminated and step < max_steps:
                 intersect, elem = next_intersect(ray)
                 if intersect is None:

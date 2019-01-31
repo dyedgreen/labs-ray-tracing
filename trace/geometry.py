@@ -192,6 +192,7 @@ class Screen(Geometry):
         if type(normal) != _np.ndarray or len(normal) != 3:
             raise TypeError
         self.__nml = normal / _u.vabs(normal)
+        self.__hits = []
 
     def contains(self, pos):
         return (self.pos - pos).dot(self.__nml) == 0
@@ -212,3 +213,13 @@ class Screen(Geometry):
         # Update the ray and mark it as terminated
         ray.terminated = True
         ray.pos = intersect
+        # Store the hit on the screen
+        self.__hits.append(ray)
+
+    @property
+    def normal(self):
+        return self.__nml
+
+    @property
+    def hits(self):
+        return self.__hits
