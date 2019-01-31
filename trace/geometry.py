@@ -152,7 +152,7 @@ class Sphere(Geometry):
         M = 16
         points = []
         _, x, y = _u.basis(self.__axi)
-        if self.__rad > 0 or True:
+        if self.__rad > 0:
             # Positive curvature
             pos = self.pos + self.__axi * (self.__rad - self.__dep)
             for n in range(N):
@@ -168,10 +168,9 @@ class Sphere(Geometry):
         else:
             # Negative curvature
             pos = self.pos + self.__axi * self.__rad
-            N = 7
-            for n in range(N):
-                height = - self.__rad - _np.sqrt(self.__rad**2 - self.__apt**2) * (1 - n/(N-1))
-                radius = _np.sqrt(self.__rad**2 - _np.sqrt(self.__rad**2 - self.__apt**2)**2)
+            for n in range(N-1):
+                height = - (self.__rad + _np.sqrt(self.__rad**2 - self.__apt**2)) * n/(N-1)
+                radius = _np.sqrt(-2*height*self.__rad - height**2)
                 origin = pos + self.__axi * height
                 if n == 0:
                     points.append(origin)
