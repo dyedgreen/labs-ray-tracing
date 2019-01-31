@@ -6,5 +6,8 @@ __pycache__/
 # C extensions
 *.so
 
+# Jupyter stuff
+.ipynb_checkpoints
+
 # Test files
 playground.py

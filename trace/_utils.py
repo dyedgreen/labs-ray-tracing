@@ -23,3 +23,9 @@ def basis(x):
 
 def sign(x):
     return 1 if x >= 0 else -1
+
+def vec(x, y, z):
+    return _np.array([x, y, z])
+
+def pos(x, y, z):
+    return vec(x, y, z)
