@@ -254,5 +254,17 @@ class TestGeometryScreen(TestCase):
         ray.k = np.array([0, 0, -1])
         self.assertSameArray(None, screen.intersect(ray))
 
+class TestScene(TestCase):
+
+    @unittest.skip("Missing tests")
+    def test_missing():
+        pass
+
+class TestSceneSource(TestCase):
+
+    @unittest.skip("Missing tests")
+    def test_missing():
+        pass
+
 if __name__ == "__main__":
     unittest.main()

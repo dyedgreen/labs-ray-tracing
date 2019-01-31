@@ -56,7 +56,8 @@ class Geometry:
     def intersect(self, ray):
         """
         Determine if ray intersects and
-        return the intersect.
+        return the intersect. If the ray
+        does not intersect, returns None.
         """
         raise NotImplementedError
 
@@ -70,7 +71,9 @@ class Geometry:
     def refract(self, ray, intersect, n):
         """
         Refract the ray and update it's
-        position and k vector.
+        position and k vector. The refractive
+        index of the medium that currently
+        contains the ray is n.
         """
         # Obtain surface normal
         normal = self.normal(intersect)
@@ -205,5 +208,7 @@ class Screen(Geometry):
     def normal(self, intersect=None):
         return self.__nml
 
-    def refract(self):
-        raise AttributeError
+    def refract(self, ray, intersect, n):
+        # Update the ray and mark it as terminated
+        ray.terminated = True
+        ray.pos = intersect

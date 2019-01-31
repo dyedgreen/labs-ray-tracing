@@ -16,6 +16,7 @@ class Ray:
         self._k = _np.zeros(3)
         self.pos = origin
         self.k = k
+        self.terminated = False # For use by simulation and screens
 
     @property
     def pos(self):
