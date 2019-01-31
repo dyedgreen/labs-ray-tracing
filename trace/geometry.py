@@ -139,10 +139,11 @@ class Sphere(Geometry):
         p_axi = self.__axi.dot(pr) # projection on lens axis
         p_apt = _u.vabs(pr - self.__axi * p_axi) # projection on radial (aperture)
 
+        eps = 1e-10 # Give some wiggle-room for rounding errors
         if self.__rad > 0:
-            return self.__rad >= _u.vabs(pr) and self.__apt >= p_apt and self.__rad - self.__dep <= p_axi
+            return (self.__rad + eps) >= _u.vabs(pr) and self.__apt + eps >= p_apt and self.__rad - self.__dep <= p_axi + eps
         else:
-            return -self.__rad <= _u.vabs(pr) and self.__apt >= p_apt and p_axi < 0 and self.__rad - self.__dep <= p_axi
+            return -(self.__rad + eps) <= _u.vabs(pr) and self.__apt + eps >= p_apt and p_axi < 0 and self.__rad - self.__dep <= p_axi + eps
 
     def intersect(self, ray):
         # We don't intercept, if we are inside the
