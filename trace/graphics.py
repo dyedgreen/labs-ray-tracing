@@ -37,7 +37,7 @@ def render_2d(screen):
     as a back-end.
     """
     fig, ax = _plt.subplots()
-    n, x, y = _u.basis(screen.normal)
+    n, x, y = _u.basis(screen.normal())
     for ray in screen.hits:
         ax.scatter(x.dot(ray.pos),y.dot(ray.pos))
     return fig

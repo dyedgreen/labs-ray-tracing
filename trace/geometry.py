@@ -86,14 +86,27 @@ class Geometry:
             k_p = k_p / k_p_vabs
         
         sin = n / self.n * k_p_vabs / _u.vabs(ray.k)
+
+        # Root bottom elem
+        root_bottom = (-1) * (sin - 1) * (sin + 1)
+        if root_bottom == 0:
+            # Catch numeric errors
+            root_bottom = 1e-30
+
         wavelength = ray.wavelength
 
-        # Note: Prevent 0 devisions by using + 1e-20
-        ray.k = \
-            k_p * _u.sign(k_p_vabs) * abs(sin * k_p_vabs / _np.sqrt(1 - sin*sin + 1e-20)) \
-            + ray.k - k_p * k_p_vabs
+        # Parallel component, magnitude 1
+        k_para = ray.k - k_p * k_p_vabs
+        k_para_vabs = _u.vabs(k_para)
+        if k_para_vabs != 0:
+            k_para = k_para / k_para_vabs
 
-        ray.wavelength = wavelength
+        # Perpendicular component + perpendicular component
+        ray.k = \
+            k_p * _u.sign(k_p_vabs) * abs(sin / _np.sqrt(root_bottom)) \
+            + k_para
+
+        # ray.wavelength = wavelength
         # Update ray position
         ray.pos = intersect
 
@@ -215,10 +228,6 @@ class Screen(Geometry):
         ray.pos = intersect
         # Store the hit on the screen
         self.__hits.append(ray)
-
-    @property
-    def normal(self):
-        return self.__nml
 
     @property
     def hits(self):
