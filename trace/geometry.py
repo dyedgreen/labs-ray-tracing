@@ -148,21 +148,40 @@ class Sphere(Geometry):
     def model(self):
         # We build the wire-frame
         # from the top down, in circles
-        N = 12
+        N = 8
         M = 16
         points = []
-        pos = self.pos + self.__axi * (self.__rad - self.__dep)
         _, x, y = _u.basis(self.__axi)
-        for n in range(N):
-            height = self.__dep * (1 - n/(N-1))
-            radius = _np.sqrt(self.__rad**2 - height**2)
-            origin = pos + self.__axi * height
-            if n == 0:
-                points.append(origin)
-            else:
-                for m in range(M):
-                    theta = m*2*_np.pi/M
-                    points.append(origin + min(radius, self.__apt) * (x * _np.cos(theta) + y * _np.sin(theta)))
+        if self.__rad > 0 or True:
+            # Positive curvature
+            pos = self.pos + self.__axi * (self.__rad - self.__dep)
+            for n in range(N):
+                height = self.__dep * (1 - n/(N-1))
+                radius = _np.sqrt(self.__rad**2 - height**2)
+                origin = pos + self.__axi * height
+                if n == 0:
+                    points.append(origin)
+                else:
+                    for m in range(M):
+                        theta = m*2*_np.pi/M
+                        points.append(origin + min(radius, self.__apt) * (x * _np.cos(theta) + y * _np.sin(theta)))
+        else:
+            # Negative curvature
+            pos = self.pos + self.__axi * self.__rad
+            N = 7
+            for n in range(N):
+                height = - self.__rad - _np.sqrt(self.__rad**2 - self.__apt**2) * (1 - n/(N-1))
+                radius = _np.sqrt(self.__rad**2 - _np.sqrt(self.__rad**2 - self.__apt**2)**2)
+                origin = pos + self.__axi * height
+                if n == 0:
+                    points.append(origin)
+                else:
+                    for m in range(M):
+                        theta = m*2*_np.pi/M
+                        points.append(origin + radius * (x * _np.cos(theta) + y * _np.sin(theta)))
+            for m in range(M):
+                        theta = m*2*_np.pi/M
+                        points.append(pos - self.__axi*self.__dep + self.__apt * (x * _np.cos(theta) + y * _np.sin(theta)))
         # Build triangles
         trigs = []
         # Top section
