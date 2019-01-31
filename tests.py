@@ -69,6 +69,22 @@ class TestUtils(TestCase):
         for val in cases_neg:
             self.assertEqual(-1, _utils.sign(val))
 
+    def test_vec(self):
+        vec = _utils.vec(1, 2, 3)
+        self.assertTrue(type(vec) == np.ndarray)
+        self.assertTrue(len(vec) == 3)
+        self.assertEqual(vec[0], 1)
+        self.assertEqual(vec[1], 2)
+        self.assertEqual(vec[2], 3)
+
+    def test_pos(self):
+        pos = _utils.pos(1, 2, 3)
+        self.assertTrue(type(pos) == np.ndarray)
+        self.assertTrue(len(pos) == 3)
+        self.assertEqual(pos[0], 1)
+        self.assertEqual(pos[1], 2)
+        self.assertEqual(pos[2], 3)
+
 class TestRays(TestCase):
 
     def test_properties(self):
