@@ -36,6 +36,8 @@ class Geometry:
         """
         Return points and triangulation that
         form (approximate) geometry wire-frame.
+        This must also return the color
+        desired when rendering.
         """
         raise NotImplementedError
 
@@ -174,7 +176,7 @@ class Sphere(Geometry):
                 trigs.append((1+n*M+m, 2+n*M+m, 2+(n+1)*M+m))
             trigs.append((1+n*M, 1+(n+1)*M, n*M+M))
             trigs.append(((n+2)*M, 1+(n+1)*M, n*M+M))
-        return points, trigs
+        return points, trigs, "#5555FF"
 
     def contains(self, pos):
         pr = pos - self.pos # pos relative to sphere origin
