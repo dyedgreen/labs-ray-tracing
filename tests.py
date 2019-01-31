@@ -126,22 +126,13 @@ class TestRays(TestCase):
 class TestGeometry(TestCase):
 
     def test_properties(self):
-        generic = geometry.Geometry()
+        generic = geometry.Geometry(n=4.3)
 
-        generic.n = 4.3
         self.assertEqual(generic.n, 4.3)
 
-        generic.pos = np.array([3,6,8])
+        generic = geometry.Geometry(np.array([3,6,8]))
         self.assertSameArray(generic.pos, np.array([3,6,8]))
 
-        with self.assertRaises(ValueError):
-            generic.n = 0.4
-
-        with self.assertRaises(TypeError):
-            generic.n = False
-
-        with self.assertRaises(TypeError):
-            generic.pos = [1,2,3]
 
     def test_defaults(self):
         generic = geometry.Geometry()
@@ -166,6 +157,9 @@ class TestGeometry(TestCase):
 class TestGeometrySphere(TestCase):
 
     def test_properties(self):
+        sphere = geometry.Sphere(1, 1, 1, axis=np.array([3, 5, 8]))
+        self.assertEqual(_utils.vabs(sphere._Sphere__axi), 1)
+
         with self.assertRaises(ValueError):
             geometry.Sphere(1, 2, 1)
 

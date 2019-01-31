@@ -31,6 +31,14 @@ class Geometry:
     def pos(self):
         return self._pos
 
+    @property
+    def model(self):
+        """
+        Return points and triangulation that
+        form (approximate) geometry wire-frame.
+        """
+        raise NotImplementedError
+
     def contains(self, pos):
         """
         Determine if pos is contained inside
@@ -131,8 +139,42 @@ class Sphere(Geometry):
         self.__crv = float(curvature)
         self.__apt = float(aperture)
         self.__dep = float(depth)
-        self.__axi = axis / _np.linalg.norm(axis)
+        self.__axi = axis / _u.vabs(axis)
         self.__rad = 1/self.__crv
+
+    @property
+    def model(self):
+        # We build the wire-frame
+        # from the top down, in circles
+        N = 12
+        M = 16
+        points = []
+        pos = self.pos + self.__axi * (self.__rad - self.__dep)
+        _, x, y = _u.basis(self.__axi)
+        for n in range(N):
+            height = self.__dep * (1 - n/(N-1))
+            radius = _np.sqrt(self.__rad**2 - height**2)
+            origin = pos + self.__axi * height
+            if n == 0:
+                points.append(origin)
+            else:
+                for m in range(M):
+                    theta = m*2*_np.pi/M
+                    points.append(origin + min(radius, self.__apt) * (x * _np.cos(theta) + y * _np.sin(theta)))
+        # Build triangles
+        trigs = []
+        # Top section
+        for m in range(M-1):
+            trigs.append((0, m+1, m+2))
+        trigs.append((0, 1, M))
+        # Rings after top
+        for n in range(0, N-2):
+            for m in range(M-1):
+                trigs.append((1+n*M+m, 1+(n+1)*M+m, 2+(n+1)*M+m))
+                trigs.append((1+n*M+m, 2+n*M+m, 2+(n+1)*M+m))
+            trigs.append((1+n*M, 1+(n+1)*M, n*M+M))
+            trigs.append(((n+2)*M, 1+(n+1)*M, n*M+M))
+        return points, trigs
 
     def contains(self, pos):
         pr = pos - self.pos # pos relative to sphere origin
