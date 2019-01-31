@@ -9,8 +9,7 @@ from . import _utils as _u
 class Geometry:
     """
     Base class for all geometry objects. Geometry
-    objects are immutable, except for their base-
-    properties pos and n.
+    objects are immutable.
 
     Notice that contains, intersect, and refract
     do avoid runtime checks and expect correct
@@ -19,32 +18,18 @@ class Geometry:
     """
 
     def __init__(self, pos=_np.zeros(3), n=1.0):
-        self._pos = _np.zeros(3)
-        self._n = 1
-        self.pos = pos
-        self.n = n
+        if type(pos) != _np.ndarray or len(pos) != 3:
+            raise TypeError
+        self._pos = pos
+        self._n = float(n)
 
     @property
     def n(self):
         return self._n
 
-    @n.setter
-    def n(self, val):
-        if type(val) != float:
-            raise TypeError
-        if val < 1:
-            raise ValueError("Expected n >= 1")
-        self._n = val
-
     @property
     def pos(self):
         return self._pos
-
-    @pos.setter
-    def pos(self, val):
-        if type(val) != type(self._pos) or len(val) != 3:
-            raise TypeError
-        self._pos = val
 
     def contains(self, pos):
         """

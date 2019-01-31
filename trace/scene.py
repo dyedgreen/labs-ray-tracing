@@ -140,3 +140,24 @@ class Scene:
                 elem.refract(ray, intersect, current_n)
                 current_n = elem.n
                 step += 1
+
+    def reset(self):
+        """
+        Creates a new scene from
+        this one, by clearing all
+        rays and creating new
+        screens.
+
+        Since sources and geometry
+        objects are immutable, they
+        are shared by the copied scene.
+        """
+        new_scene = Scene(n=self.__n)
+        for elem in self.__geo:
+            if type(elem) == _geo.Screen:
+                new_scene.add(_geo.Screen(normal=elem.normal(), pos=elem.pos))
+            else:
+                new_scene.add(elem)
+        for src in self.__src:
+            new_scene.add(src)
+        return new_scene
