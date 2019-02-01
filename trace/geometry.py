@@ -218,7 +218,9 @@ class Sphere(Geometry):
                         points.append(origin + radius * (x * _np.cos(theta) + y * _np.sin(theta)))
             for m in range(M):
                         theta = m*2*_np.pi/M
-                        points.append(pos - self.__axi*self.__dep + self.__apt * (x * _np.cos(theta) + y * _np.sin(theta)))
+                        points.append(
+                            pos - self.__axi*self.__dep + self.__apt * (x * _np.cos(theta) + y * _np.sin(theta))
+                        )
         # Build triangles
         trigs = []
         # Top section
@@ -229,8 +231,8 @@ class Sphere(Geometry):
         for n in range(0, N-2):
             for m in range(M-1):
                 trigs.append((1+n*M+m, 1+(n+1)*M+m, 2+(n+1)*M+m))
-                trigs.append((1+n*M+m, 2+n*M+m, 2+(n+1)*M+m))
-            trigs.append((1+n*M, 1+(n+1)*M, n*M+M))
+                trigs.append((2+(n+1)*M+m, 2+n*M+m, 1+n*M+m))
+            trigs.append((n*M+M, 1+(n+1)*M, 1+n*M))
             trigs.append(((n+2)*M, 1+(n+1)*M, n*M+M))
         return points, trigs, self.color
 
@@ -241,9 +243,16 @@ class Sphere(Geometry):
 
         eps = 1e-10 # Give some wiggle-room for rounding errors
         if self.__rad > 0:
-            return (self.__rad + eps) >= _u.vabs(pr) and self.__apt + eps >= p_apt and self.__rad - self.__dep <= p_axi + eps
+            return \
+                (self.__rad + eps) >= _u.vabs(pr) and \
+                self.__apt + eps >= p_apt and \
+                self.__rad - self.__dep <= p_axi + eps
         else:
-            return -(self.__rad + eps) <= _u.vabs(pr) and self.__apt + eps >= p_apt and p_axi < 0 and self.__rad - self.__dep <= p_axi + eps
+            return \
+                -(self.__rad + eps) <= _u.vabs(pr) and \
+                self.__apt + eps >= p_apt and \
+                p_axi < 0 and \
+                self.__rad - self.__dep <= p_axi + eps
 
     def intersect(self, ray):
         # We don't intercept, if we are inside the

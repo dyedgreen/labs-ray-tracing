@@ -6,6 +6,7 @@ import unittest
 import numpy as np
 from trace import rays
 from trace import geometry
+from trace import scene
 from trace import _utils
 
 class TestCase(unittest.TestCase):
