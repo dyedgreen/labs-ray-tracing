@@ -11,37 +11,103 @@ from . import rays as _rays
 class Source:
     """
     A source that can spawn rays into
-    a scene. Ray sources are circular
-    and spawn N rays.
-    Sources are immutable.
+    a scene.
     """
 
-    def __init__(self, pos, k, R=1, N=64, step=20):
+    def __init__(self, pos=_u.pos(0,0,0), k=_u.vec(0, 0, 1)):
         if not type(pos) is _np.ndarray or len(pos) != 3:
             raise TypeError
         if not type(k) is _np.ndarray or len(k) != 3:
             raise TypeError
-        if R < 0 or N <= 0:
-            raise ValueError
-        self.__pos = pos
-        self.__k = k
-        self.__rad = R
+        self._pos = pos
+        self._k = k
+
+    def spawn(self):
+        """
+        Generate the rays.
+        """
+        raise NotImplementedError
+
+class SpiralSource(Source):
+    """
+    Spawns rays from a circular
+    surface. The rays are arranged
+    in a spiral.
+    """
+
+    def __init__(self, radius=1, step=8, N=32, **kwargs):
+        super().__init__(**kwargs)
+        self.__rad = float(radius)
         self.__cap = int(N)
         self.__stp = int(step)
 
     def spawn(self):
-        """
-        Generates N rays, spread radially
-        outwards.
-        """
-        k, x, y = _u.basis(self.__k)
+        k, x, y = _u.basis(self._k)
         rays = []
         for i in range(self.__cap):
             theta = i * 2 * _np.pi / self.__stp
             r = self.__rad * i / self.__cap
             rays.append(
-                _rays.Ray(origin=(self.__pos + x*_np.cos(theta)*r + y*_np.sin(theta)*r), k=self.__k)
+                _rays.Ray(origin=(self._pos + x*_np.cos(theta)*r + y*_np.sin(theta)*r), k=self._k)
             )
+        return rays
+
+class RadialSource(Source):
+    """
+    Spawn rays from a circular
+    surface. The rays are 
+    arranged in lines extending
+    outwards.
+
+    The step specifies the
+    angular step, rings
+    specifies the number of rings
+    to generate.
+    """
+
+    def __init__(self, radius=1, step=8, rings=8, **kwargs):
+        super().__init__(**kwargs)
+        self.__rad = float(radius)
+        self.__stp = int(step)
+        self.__rng = int(rings)
+
+    def spawn(self):
+        k, x, y = _u.basis(self._k)
+        rays = []
+        for n in range(1, self.__rng + 1):
+            r = self.__rad * n / self.__rng
+            for i in range(self.__stp):
+                theta = i * 2 * _np.pi / self.__stp
+                rays.append(
+                    _rays.Ray(origin=(self._pos + x*_np.cos(theta)*r + y*_np.sin(theta)*r), k=self._k)
+                )
+        return rays
+
+class DenseSource(Source):
+    """
+    Spawn rays from a circular
+    surface. The rays are
+    arranged to have approximately
+    uniform density.
+    """
+
+    def __init__(self, radius=1, density=8, **kwargs):
+        super().__init__(**kwargs)
+        self.__rad = float(radius)
+        self.__den = float(density)
+
+    def spawn(self):
+        k, x, y = _u.basis(self._k)
+        rays = []
+        N = int(2 * self.__rad * self.__den)
+        origin = self._pos - x*self.__rad - y*self.__rad
+        for i in range(N):
+            for j in range(N):
+                pos = origin + x*2*i*self.__rad/N + y*2*j*self.__rad/N
+                if _u.vabs(pos - self._pos) <= self.__rad:
+                    rays.append(
+                        _rays.Ray(origin=pos, k=self._k)
+                    )
         return rays
 
 class Scene:
