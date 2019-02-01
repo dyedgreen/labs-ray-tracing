@@ -290,5 +290,23 @@ class TestSceneSource(TestCase):
     def test_missing():
         pass
 
+class TestSceneSpiralSource(TestCase):
+
+    @unittest.skip("Missing tests")
+    def test_missing():
+        pass
+
+class TestSceneRadialSource(TestCase):
+
+    @unittest.skip("Missing tests")
+    def test_missing():
+        pass
+
+class TestSceneDenseSource(TestCase):
+
+    @unittest.skip("Missing tests")
+    def test_missing():
+        pass
+
 if __name__ == "__main__":
     unittest.main()
