@@ -154,6 +154,12 @@ class TestGeometry(TestCase):
         with self.assertRaises(NotImplementedError):
             generic.refract(None, None, None)
 
+class TestGeometryLens(TestCase):
+
+    @unittest.skip("Missing tests")
+    def test_missing():
+        pass
+
 class TestGeometrySphere(TestCase):
 
     def test_properties(self):
@@ -216,8 +222,37 @@ class TestGeometrySphere(TestCase):
         with self.assertRaises(AttributeError):
             lens.intersect(None)
 
+class TestGeometryPlane(TestCase):
+
+    def test_properties(self):
+        # Defaults
+        plane = geometry.Plane()
+        self.assertSameArray(np.array([0, 0, 1]), plane.normal())
+
+        # Normalizes
+        normals = [np.array([0, 0, 7]), np.array([0, 0, 23.6]), np.array([0, .0, -2.47])]
+        for n in normals:
+            plane = geometry.Plane(normal=n)
+            self.assertAlmostEqual(1, _utils.vabs(plane.normal()))
+
+        plane = geometry.Plane(pos=np.array([0, 0, 1]))
+
+        ray = rays.Ray()
+        ray.k = np.array([0, 0, 1])
+        self.assertSameArray(np.array([0, 0, 1]), plane.intersect(ray))
+
+        ray = rays.Ray()
+        ray.k = np.array([1, 1, 0])
+        self.assertSameArray(None, plane.intersect(ray))
+
+        ray = rays.Ray()
+        ray.k = np.array([0, 0, -1])
+        self.assertSameArray(None, plane.intersect(ray))
+
+class TestGeometrySphereLens(TestCase):
+
     def test_refract(self):
-        lens = geometry.Sphere(1, 1, 1, n=1.0)
+        lens = geometry.SphereLens(1, 1, 1, n=1.0)
 
         ray = rays.Ray(origin=np.array([0, 0, 2]))
         ray.k = np.array([0, 0, -1])
@@ -239,30 +274,9 @@ class TestGeometrySphere(TestCase):
 
 class TestGeometryScreen(TestCase):
 
-    def test_properties(self):
-        # Defaults
-        screen = geometry.Screen()
-        self.assertSameArray(np.array([0, 0, 1]), screen.normal())
-
-        # Normalizes
-        normals = [np.array([1, 5, 7]), np.array([1, -5.7, 23]), np.array([1.7, 5.0, -2])]
-        for n in normals:
-            screen = geometry.Screen(normal=n)
-            self.assertAlmostEqual(1, _utils.vabs(screen.normal()))
-
-        screen = geometry.Screen(pos=np.array([0, 0, 1]))
-
-        ray = rays.Ray()
-        ray.k = np.array([0, 0, 1])
-        self.assertSameArray(np.array([0, 0, 1]), screen.intersect(ray))
-
-        ray = rays.Ray()
-        ray.k = np.array([1, 1, 0])
-        self.assertSameArray(None, screen.intersect(ray))
-
-        ray = rays.Ray()
-        ray.k = np.array([0, 0, -1])
-        self.assertSameArray(None, screen.intersect(ray))
+    @unittest.skip("Missing tests")
+    def test_missing():
+        pass
 
 class TestScene(TestCase):
 

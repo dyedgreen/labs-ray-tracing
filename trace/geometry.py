@@ -6,13 +6,16 @@ the rays.
 import numpy as _np
 from . import _utils as _u
 
+
+# Abstract classes
+
 class Geometry:
     """
     Base class for all geometry objects. Geometry
     objects are immutable.
 
     Notice that contains, intersect, and refract
-    do avoid runtime checks and expect correct
+    avoid runtime checks and expect correct
     arguments. This is done, since they will be
     called very often during the simulation.
     """
@@ -40,6 +43,13 @@ class Geometry:
         desired when rendering.
         """
         raise NotImplementedError
+
+    @property
+    def color(self):
+        """
+        Color used for rendering objects.
+        """
+        return "#000000"
 
     def contains(self, pos):
         """
@@ -70,6 +80,21 @@ class Geometry:
         index of the medium that currently
         contains the ray is n.
         """
+        raise NotImplementedError
+
+    def __str__(self):
+        return "{}(n={}, pos={})".format(type(self).__name__, self.n, self.pos)
+
+    def __repr__(self):
+        return str(self)
+
+class Lens(Geometry):
+    """
+    Base class for lenses. Any lens will
+    subclass this and it's respective geometry.
+    """
+
+    def refract(self, ray, intersect, n):
         # Obtain surface normal
         normal = self.normal(intersect)
         
@@ -101,19 +126,16 @@ class Geometry:
             k_p * _u.sign(k_p_vabs) * abs(sin / _np.sqrt(root_bottom)) \
             + k_para
 
-        # ray.wavelength = wavelength
+        ray.wavelength = wavelength
+
         # Update ray position
         ray.pos = intersect
 
-    def __str__(self):
-        return "{}(n={}, pos={})".format(type(self).__name__, self.n, self.pos)
-
-    def __repr__(self):
-        return str(self)
+# Geometry classes (abstract)
 
 class Sphere(Geometry):
     """
-    Represents a spherical surface lens. Refraction
+    Represents a spherical surface. Refraction
     only occurs on the spherical surface.
 
     The lens is described by several parameters:
@@ -132,7 +154,7 @@ class Sphere(Geometry):
     <--- axis direction
     """
 
-    def __init__(self, curvature, aperture, depth, axis=_np.array([0,0,1]), **kwargs):
+    def __init__(self, curvature, aperture, depth, axis=_u.vec(0,0,1), **kwargs):
         super().__init__(**kwargs)
         if type(axis) != _np.ndarray or len(axis) != 3:
             raise TypeError
@@ -194,7 +216,7 @@ class Sphere(Geometry):
                 trigs.append((1+n*M+m, 2+n*M+m, 2+(n+1)*M+m))
             trigs.append((1+n*M, 1+(n+1)*M, n*M+M))
             trigs.append(((n+2)*M, 1+(n+1)*M, n*M+M))
-        return points, trigs, "#5555FF"
+        return points, trigs, self.color
 
     def contains(self, pos):
         pr = pos - self.pos # pos relative to sphere origin
@@ -242,33 +264,99 @@ class Sphere(Geometry):
         n = intersect - self.pos
         return n / _u.vabs(n)
 
-class Screen(Geometry):
+class Plane(Geometry):
     """
-    Implements an infinite optical
-    screen, used to record images.
+    Represents a planar surface.
+
+    The plane is described by a set
+    of vectors.
+     /\
+     || height
+     ||
+     ||
+    (pos)-----> width
+
+    The normal will be normalized for
+    you and points upwards in the above
+    picture. Note that the height and
+    width and normal need to be orthogonal.
     """
 
-    def __init__(self, normal=_np.array([0, 0, 1]), **kwargs):
+    def __init__(self, normal=_u.vec(0,0,1), width=_u.vec(1,0,0), height=_u.vec(0,1,0), **kwargs):
         super().__init__(**kwargs)
-        if type(normal) != _np.ndarray or len(normal) != 3:
-            raise TypeError
-        self.__nml = normal / _u.vabs(normal)
-        self.__hits = []
+        for vec in [normal, width, height]:
+            if type(vec) != _np.ndarray or len(vec) != 3:
+                raise TypeError
+        eps = 1e-10
+        if abs(normal.dot(width)) > eps or abs(normal.dot(height)) > eps or abs(width.dot(height)) > eps:
+            raise ValueError("Need orthogonal vectors to specify plane")
+        self.__n = normal
+        self.__x = width
+        self.__y = height
+        self.__wid = _u.vabs(width)
+        self.__hei = _u.vabs(height)
+        self.__n = self.__n / _u.vabs(normal)
+        self.__x = self.__x / self.__wid
+        self.__y = self.__y / self.__hei
+
+    @property
+    def model(self):
+        # This is a simple model
+        points = [
+            self.pos,
+            self.pos + self.__x*self.__wid,
+            self.pos + self.__y*self.__hei,
+            self.pos + self.__x*self.__wid + self.__y*self.__hei,
+        ]
+        trigs = [(0, 1, 2), (1, 2, 3)]
+        return points, trigs, self.color
 
     def contains(self, pos):
-        return (self.pos - pos).dot(self.__nml) == 0
+        pos = pos - self.pos
+        z, x, y = self.__n.dot(pos), self.__x.dot(pos), self.__y.dot(pos)
+        eps = 1e-10
+        return \
+            abs(z) < eps and \
+            _u.sign(x) == _u.sign(self.__wid) and _u.sign(y) == _u.sign(self.__hei) and \
+            abs(self.__wid) + eps >= abs(x) and 0 <= abs(x) and \
+            abs(self.__hei) + eps >= abs(y) and 0 <= abs(y)
 
     def intersect(self, ray):
-        a = ray.k_hat.dot(self.__nml)
+        a = ray.k_hat.dot(self.__n)
         if a == 0:
             return ray.pos if self.contains(ray.pos) else None
-        d = (self.pos - ray.pos).dot(self.__nml) / a
+        d = (self.pos - ray.pos).dot(self.__n) / a
         if d >= 0:
-            return ray.pos + ray.k_hat * d
+            intersect = ray.pos + ray.k_hat * d
+            return intersect if self.contains(intersect) else None
         return None
 
     def normal(self, intersect=None):
-        return self.__nml
+        return self.__n
+
+# User classes
+
+class SphereLens(Lens, Sphere):
+
+    @property
+    def color(self):
+        return "#5555FF"
+
+class PlaneLens(Lens, Plane):
+
+    @property
+    def color(self):
+        return "#5555FF"
+
+class Screen(Plane):
+    """
+    Implements an optical
+    screen, used to record images.
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.__hits = []
 
     def refract(self, ray, intersect, n):
         # Update the ray and mark it as terminated
