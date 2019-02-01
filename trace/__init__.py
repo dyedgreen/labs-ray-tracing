@@ -1,7 +1,29 @@
 """
 Ray Tracing Module
 
-FIXME: Add more detailed docs here...
+Contains modules to assemble scenes
+and trace rays through these scenes.
+
+A scene can also be rendered in 3D.
+
+Modules included are:
+ - geometry (contains lenses, mirrors and screens)
+ - graphics (render scenes and screens)
+ - rays (ray class)
+ - scene (contains scene and ray sources)
+
+Convenience functions
+included are:
+ - vec (make a 3D vector)
+ - pos (alias for pos)
+ - basis (given a vector, make an orthonormal set)
+
+Most user-facing classes are exposed directly
+when importing trace.
+
+For more detailed documentation please
+refer to the modules and the included
+demo.
 """
 
 # Make packages available
