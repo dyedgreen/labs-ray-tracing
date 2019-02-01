@@ -324,7 +324,7 @@ class Plane(Geometry):
             self.pos + self.__y*self.__hei,
             self.pos + self.__x*self.__wid + self.__y*self.__hei,
         ]
-        trigs = [(0, 1, 2), (1, 2, 3)]
+        trigs = [(2, 1, 0), (1, 2, 3)]
         return points, trigs, self.color
 
     def contains(self, pos):
