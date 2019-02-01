@@ -11,7 +11,7 @@ from . import rays
 from . import scene
 
 # Make frequently used objects available directly
-from .geometry import SphereLens, PlaneLens, Screen
+from .geometry import SphereLens, PlaneLens, Screen, SphereMirror, PlaneMirror
 from .rays import Ray
 from .scene import Scene, SpiralSource, RadialSource, DenseSource
 

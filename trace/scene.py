@@ -204,7 +204,7 @@ class Scene:
                     break
                 # TODO: Think about refracting in different directions -> different n order!
                 elem.refract(ray, intersect, current_n)
-                current_n = elem.n
+                current_n = elem.n if not isinstance(elem, _geo.Mirror) else current_n
                 step += 1
 
     def reset(self):

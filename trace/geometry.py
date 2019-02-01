@@ -131,6 +131,22 @@ class Lens(Geometry):
         # Update ray position
         ray.pos = intersect
 
+class Mirror(Geometry):
+    """
+    Base class for mirrors.
+    """
+
+    def refract(self, ray, intersect, n):
+        # Obtain surface normal
+        normal = self.normal(intersect)
+
+        # Flip the parallel k component
+        k = ray.k - normal * 2 * normal.dot(ray.k)
+
+        # Update k and pos
+        ray.pos = intersect
+        ray.k = k
+
 # Geometry classes (abstract)
 
 class Sphere(Geometry):
@@ -323,8 +339,8 @@ class Plane(Geometry):
 
     def intersect(self, ray):
         a = ray.k_hat.dot(self.__n)
-        if a == 0:
-            return ray.pos if self.contains(ray.pos) else None
+        if a == 0 or self.contains(ray.pos):
+            return None
         d = (self.pos - ray.pos).dot(self.__n) / a
         if d >= 0:
             intersect = ray.pos + ray.k_hat * d
@@ -347,6 +363,18 @@ class PlaneLens(Lens, Plane):
     @property
     def color(self):
         return "#5555FF"
+
+class SphereMirror(Mirror, Sphere):
+
+    @property
+    def color(self):
+        return "#AAAA00"
+
+class PlaneMirror(Mirror, Plane):
+
+    @property
+    def color(self):
+        return "#AAAA00"
 
 class Screen(Plane):
     """

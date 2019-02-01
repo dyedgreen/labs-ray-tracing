@@ -160,6 +160,12 @@ class TestGeometryLens(TestCase):
     def test_missing():
         pass
 
+class TestGeometryMirror(TestCase):
+
+    @unittest.skip("Missing tests")
+    def test_missing():
+        pass
+
 class TestGeometrySphere(TestCase):
 
     def test_properties(self):

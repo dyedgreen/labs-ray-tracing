@@ -34,7 +34,7 @@ def render_3d(scene, extend=1.0, plot_free=True):
         x = _np.array([pos[0] for pos in points])
         y = _np.array([pos[1] for pos in points])
         z = _np.array([pos[2] for pos in points])
-        ax.plot_trisurf(x, y, triangles, z, alpha=0.1, color=color)
+        ax.plot_trisurf(x, y, triangles, z, alpha=0.3, color=color)
         ax.text3D(*geo.pos, str(geo))
     return fig
 
