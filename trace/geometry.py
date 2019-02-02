@@ -109,7 +109,7 @@ class Lens(Geometry):
 
         # Root bottom elem
         root_bottom = (-1) * (sin - 1) * (sin + 1)
-        if root_bottom == 0:
+        if root_bottom <= 0:
             # Catch numeric errors
             root_bottom = 1e-30
 
@@ -168,6 +168,8 @@ class Sphere(Geometry):
           -------|
 
     <--- axis direction
+
+    See self.pos for a note about position!
     """
 
     def __init__(self, curvature, aperture, depth, axis=_u.vec(0,0,1), **kwargs):
@@ -181,6 +183,17 @@ class Sphere(Geometry):
         self.__dep = float(depth)
         self.__axi = axis / _u.vabs(axis)
         self.__rad = 1/self.__crv
+
+    @property
+    def pos(self):
+        """
+        This is the position of the sphere
+        origin, as this is the most useful for
+        calculations. However, the position
+        given during construction is the position
+        of the center of the spherical surface.
+        """
+        return self._pos - self.__rad * self.__axi
 
     @property
     def model(self):
@@ -265,7 +278,7 @@ class Sphere(Geometry):
         d_square = _u.vabs(d)**2
         r_square = self.__rad**2
         d_dot_k = d.dot(ray.k_hat)
-        sqrt = _np.sqrt(d_dot_k**2 - d_square + r_square)
+        sqrt = _np.sqrt(abs(d_dot_k**2 - d_square + r_square))
         l_1 = d_dot_k + sqrt
         l_2 = d_dot_k - sqrt
 
@@ -295,7 +308,7 @@ class Plane(Geometry):
 
     The plane is described by a set
     of vectors.
-     /\
+     /\\
      || height
      ||
      ||
@@ -401,6 +414,16 @@ class Screen(Plane):
         ray.pos = intersect
         # Store the hit on the screen
         self.__hits.append(ray)
+
+    def RMS(self, center):
+        """
+        Compute RMS of hits from
+        center.
+        """
+        if not self.contains(center):
+            raise ValueError("Center must be on screen")
+        ms = sum([_u.vabs(h.pos - center)**2 for h in self.hits]) / len(self.hits)
+        return _np.sqrt(ms)
 
     @property
     def hits(self):

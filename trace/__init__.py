@@ -15,7 +15,7 @@ Modules included are:
 Convenience functions
 included are:
  - vec (make a 3D vector)
- - pos (alias for pos)
+ - pos (alias for vec)
  - basis (given a vector, make an orthonormal set)
 
 Most user-facing classes are exposed directly

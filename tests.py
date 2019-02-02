@@ -70,6 +70,8 @@ class TestUtils(TestCase):
         for val in cases_neg:
             self.assertEqual(-1, _utils.sign(val))
 
+        self.assertEqual(0, _utils.sign(0))
+
     def test_vec(self):
         vec = _utils.vec(1, 2, 3)
         self.assertTrue(type(vec) == np.ndarray)
@@ -123,6 +125,16 @@ class TestRays(TestCase):
         ray = rays.Ray()
         self.assertSameArray(ray.pos, np.zeros(3))
         self.assertSameArray(ray.k, np.zeros(3))
+
+    def test_intersect_axis(self):
+        ray = rays.Ray(k=_utils.vec(0,0,1))
+        origin = _utils.pos(1,0,1)
+        axis = _utils.vec(0,1,0)
+
+        pt_ray, pt_axi = ray.intersect_axis(origin, axis)
+        self.assertApproxArray(pt_ray, _utils.pos(0,0,1))
+        self.assertApproxArray(pt_axi, _utils.pos(1,0,1))
+        self.assertAlmostEqual(_utils.vabs(pt_ray-pt_axi), 1)
 
 class TestGeometry(TestCase):
 
@@ -187,7 +199,7 @@ class TestGeometrySphere(TestCase):
         self.assertSameArray(lens._Sphere__axi, np.array([0,0,1]))
 
     def test_contains(self):
-        lens = geometry.Sphere(1, 0.5, 0.5, axis=np.array([1, 0, 0]))
+        lens = geometry.Sphere(1, 0.5, 0.5, axis=np.array([1, 0, 0]), pos=_utils.pos(1,0,0))
         are_in = [
             np.array([0.5, 0, 0]),
             np.array([1.0, 0, 0]),
@@ -206,7 +218,7 @@ class TestGeometrySphere(TestCase):
             self.assertFalse(lens.contains(pos))
 
     def test_intersect(self):
-        lens = geometry.Sphere(1, 1, 1)
+        lens = geometry.Sphere(1, 1, 1, pos=_utils.pos(0,0,1))
         ray = rays.Ray(origin=np.array([0, 0, 2]))
 
         ray.k = np.array([0, 0, -1])
@@ -242,7 +254,7 @@ class TestGeometryPlane(TestCase):
             plane = geometry.Plane(normal=n)
             self.assertAlmostEqual(1, _utils.vabs(plane.normal()))
 
-        plane = geometry.Plane(pos=np.array([0, 0, 1]))
+        plane = geometry.Plane(pos=np.array([-0.5, -0.5, 1]))
 
         ray = rays.Ray()
         ray.k = np.array([0, 0, 1])
@@ -259,7 +271,7 @@ class TestGeometryPlane(TestCase):
 class TestGeometrySphereLens(TestCase):
 
     def test_refract(self):
-        lens = geometry.SphereLens(1, 1, 1, n=1.0)
+        lens = geometry.SphereLens(1, 1, 1, n=1.0, pos=_utils.pos(0,0,1))
 
         ray = rays.Ray(origin=np.array([0, 0, 2]))
         ray.k = np.array([0, 0, -1])

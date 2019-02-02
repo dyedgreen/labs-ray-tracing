@@ -54,6 +54,32 @@ class Ray:
     def path(self):
         return self._path
 
+    def intersect_axis(self, origin, axis):
+        """
+        Find the intersect of the ray with
+        the given axis.
+        Returns the closest points along
+        the ray and axis.
+        """
+        a, b, c, d, e, f, g = \
+            self.pos.dot(self.k), \
+            self.k.dot(self.k), \
+            self.k.dot(origin), \
+            self.k.dot(axis), \
+            self.pos.dot(axis), \
+            origin.dot(axis), \
+            axis.dot(axis)
+        # Solve set of linear equations: closest points are pos + k * lam, origin + axis * gam
+        bottom = b*g - d**2
+        if bottom == 0:
+            bottom = 1e-30
+        lam = (-a*g + c*g + d*e - d*f) / bottom
+        gam = (b*(e-f) - d*(a-c)) / bottom
+        if lam < -1e-10:
+            # The ray only goes forward
+            return None, None
+        return self.pos + self.k * lam, origin + axis * gam
+
     def __getitem__(self, *idx):
         return self.path.__getitem__(*idx)
 

@@ -211,8 +211,7 @@ class Scene:
         """
         Creates a new scene from
         this one, by clearing all
-        rays and creating new
-        screens.
+        rays and removing any screen.
 
         Since sources and geometry
         objects are immutable, they
@@ -220,9 +219,7 @@ class Scene:
         """
         new_scene = Scene(n=self.__n)
         for elem in self.__geo:
-            if type(elem) == _geo.Screen:
-                new_scene.add(_geo.Screen(normal=elem.normal(), pos=elem.pos))
-            else:
+            if not type(elem) == _geo.Screen:
                 new_scene.add(elem)
         for src in self.__src:
             new_scene.add(src)

@@ -22,7 +22,10 @@ def basis(x):
     return (x, y, z)
 
 def sign(x):
-    return 1 if x >= 0 else -1
+    """
+    Signum function.
+    """
+    return 1 if x > 0 else (-1 if x < 0 else 0)
 
 def vec(x, y, z):
     return _np.array([x, y, z])
