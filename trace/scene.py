@@ -7,6 +7,7 @@ import numpy as _np
 from . import _utils as _u
 from . import geometry as _geo
 from . import rays as _rays
+from ._unsafe import Volatile
 
 class Source:
     """
@@ -219,6 +220,8 @@ class Scene:
         """
         new_scene = Scene(n=self.__n)
         for elem in self.__geo:
+            if isinstance(elem, Volatile):
+                raise ValueError("Scene contains unsafe geometry")
             if not type(elem) == _geo.Screen:
                 new_scene.add(elem)
         for src in self.__src:

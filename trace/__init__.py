@@ -11,6 +11,7 @@ Modules included are:
  - graphics (render scenes and screens)
  - rays (ray class)
  - scene (contains scene and ray sources)
+ - optim (non-safe types for optimizing parameters)
 
 Convenience functions
 included are:
@@ -31,6 +32,7 @@ from . import geometry
 from . import graphics
 from . import rays
 from . import scene
+from . import optim
 
 # Make frequently used objects available directly
 from .geometry import SphereLens, PlaneLens, Screen, SphereMirror, PlaneMirror
