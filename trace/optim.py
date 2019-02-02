@@ -57,7 +57,7 @@ class VolatileScene(_unsafe.Volatile, _scene.Scene):
     things to be changed in place.
     """
 
-    def reset():
+    def reset(self):
         """
         Resets the scene
         in-place, removing

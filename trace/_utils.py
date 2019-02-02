@@ -28,7 +28,7 @@ def sign(x):
     return 1 if x > 0 else (-1 if x < 0 else 0)
 
 def vec(x, y, z):
-    return _np.array([x, y, z])
+    return _np.array([x, y, z], dtype=float)
 
 def pos(x, y, z):
     return vec(x, y, z)
