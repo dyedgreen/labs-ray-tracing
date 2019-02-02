@@ -38,7 +38,7 @@ from . import optim
 from .geometry import SphereLens, PlaneLens, Screen, SphereMirror, PlaneMirror
 from .rays import Ray
 from .scene import Scene, SpiralSource, RadialSource, DenseSource
-from .optim import Variable, make_volatile
+from .optim import Variable, VolatileScene, make_volatile
 
 # Helper for vectors
 from ._utils import vec, pos, basis
