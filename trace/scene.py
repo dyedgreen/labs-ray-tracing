@@ -159,22 +159,13 @@ class Scene:
     def elements(self):
         return [*self.__ray, *self.__geo, *self.__src]
 
-    def trace(self, max_steps=64):
+    def trace_ray(self, ray, max_steps=64):
         """
-        Trace all rays through the scene. Takes
-        at most max_steps steps per ray. If no
-        trace has run previously, it will also
-        spawn new rays from any present sources.
+        Trace a single ray
+        through the scene.
         """
-        if self.__steps == 0:
-            for src in self.__src:
-                rays = src.spawn()
-                for r in rays:
-                    self.add(r)
-        self.__steps += max_steps # Record number of steps attempted
 
-        # Run trace for each ray, this works since rays
-        # don't interact with each other
+        # Local helper functions
         def curr_container(ray):
             for elem in self.__geo:
                 if elem.contains(ray):
@@ -195,18 +186,36 @@ class Scene:
                         dist = dist_i
             return intersect, intersect_elem
 
+        step = 0
+        intersect = None
+        current_n = self.__n
+        while not ray.terminated and step < max_steps:
+            intersect, elem = next_intersect(ray)
+            if intersect is None:
+                break
+            # TODO: Think about refracting in different directions -> different n order!
+            elem.refract(ray, intersect, current_n)
+            current_n = elem.n if not isinstance(elem, _geo.Mirror) else current_n
+            step += 1
+
+    def trace(self, max_steps=64):
+        """
+        Trace all rays through the scene. Takes
+        at most max_steps steps per ray. If no
+        trace has run previously, it will also
+        spawn new rays from any present sources.
+        """
+        if self.__steps == 0:
+            for src in self.__src:
+                rays = src.spawn()
+                for r in rays:
+                    self.add(r)
+        self.__steps += max_steps # Record number of steps attempted
+
+        # Run trace for each ray, this works since rays
+        # don't interact with each other
         for ray in self.__ray:
-            step = 0
-            intersect = None
-            current_n = self.__n # Test if good choice...
-            while not ray.terminated and step < max_steps:
-                intersect, elem = next_intersect(ray)
-                if intersect is None:
-                    break
-                # TODO: Think about refracting in different directions -> different n order!
-                elem.refract(ray, intersect, current_n)
-                current_n = elem.n if not isinstance(elem, _geo.Mirror) else current_n
-                step += 1
+            self.trace_ray(ray, max_steps)
 
     def reset(self):
         """

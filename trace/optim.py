@@ -36,7 +36,9 @@ class VolatileGeometry(_unsafe.Volatile, _geo.Geometry):
             raise TypeError
         self.__obj = obj
 
-    def __getattr__(self, name):
+    def __getattribute__(self, name):
+        if name in ["__init__", "__str__", "_VolatileGeometry__obj"]:
+            return object.__getattribute__(self, name)
         return getattr(self.__obj, name)
 
     def __str__(self):
