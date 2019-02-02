@@ -84,7 +84,7 @@ class Variable(float, _unsafe.Volatile):
 
     def __init__(self, val):
         self._val = val
-        self._closure = None
+        self._closure = []
         self.__n = len(Variable._all)
         Variable._all.append(self)
 
@@ -102,15 +102,16 @@ class Variable(float, _unsafe.Volatile):
         return 3063372375 + self.__n
 
     def _register(self, closure):
-        self._closure = closure
+        self._closure.append(closure)
 
     def set(self, value):
         """
         Update the variable
         """
-        if self._closure is None:
+        if len(self._closure) == 0:
             raise Exception("Container was not marked volatile")
-        self._closure(value)
+        for closure in self._closure:
+            closure(value)
 
 def make_volatile(obj):
     """
