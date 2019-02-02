@@ -15,10 +15,10 @@ any mutation.
 
 from . import geometry as _geo
 from . import scene as _scene
-from ._unsafe import Volatile
+from . import _unsafe
 
 
-class VolatileGeometry(Volatile, _geo.Geometry):
+class VolatileGeometry(_unsafe.Volatile, _geo.Geometry):
     """
     Base class for optim
     geometry objects. These
@@ -49,7 +49,7 @@ class VolatileMirror(VolatileGeometry, _geo.Mirror):
             raise TypeError
         self.__obj = mirror
 
-class VolatileScene(_scene.Scene):
+class VolatileScene(_unsafe.Volatile, _scene.Scene):
     """
     Unsafe version of scene, allowing
     things to be changed in place.
@@ -68,52 +68,88 @@ class VolatileScene(_scene.Scene):
             if type(geo) == _geo.Screen:
                 geo._Screen__hits = []
 
-def make_volatile(a, b):
+class Variable(float, _unsafe.Volatile):
+    """
+    Pass to mark parameters
+    that should be varied.
+
+    Note: The value set in
+    the actual geometry instance
+    is undefined until the object
+    is made volatile.
+    """
+
+    # Global variable register
+    _all = []
+
+    def __init__(self, val):
+        self._val = val
+        self._closure = None
+        self.__n = len(Variable._all)
+        Variable._all.append(self)
+
+    def __getattr__(self, name):
+        return getattr(self._val, name)
+
+    def __float__(self):
+        # Note: This is somewhat of a hack: We mark
+        # variables, by setting it to a very specific
+        # float that is unlikely to occur...
+        return 3063372375.0 + self.__n
+
+    def __int__(self):
+        # Note: See __float__
+        return 3063372375 + self.__n
+
+    def _register(self, closure):
+        self._closure = closure
+
+    def set(self, value):
+        """
+        Update the variable
+        """
+        if self._closure is None:
+            raise Exception("Container was not marked volatile")
+        self._closure(value)
+
+def make_volatile(obj):
     """
     Makes any geometry object
     volatile. Mark the attribute
     you want to change, by
-    passing two instances, that
-    differ by that attribute.
+    passing Variable() to
+    instantiate it.
 
     Only numerical attributes are
-    supported, and only one
-    attribute may be volatile.
+    supported.
 
     The objects passed should
     be considered unsafe after
     this function returns.
 
     Returns a VolatileGeometry
-    object and a function that
-    accepts exactly one argument,
-    which updates the value that
-    differs between a and b.
-
-    The returned object has the
-    same attributes as a.
+    object.
     """
-    if type(a) is not type(b):
-            raise TypeError("{} is not the same as {}".format(a, b))
-    attrs_a = dir(a)
-    attrs_b = dir(b)
-    attr = None
-    for attr_a in attrs_a:
-        if attr_a in a.__dict__ and type(getattr(a, attr_a)) in [float, int]:
-            # We know that the curvature is never used internally, discard:
-            if attr_a == "_Sphere__crv":
-                continue
-            # Detect difference, raise error if multiple different
-            if getattr(a, attr_a) != getattr(b, attr_a):
-                if attr is not None:
-                    raise Exception("Multiple parameters differ")
-                attr = attr_a
-    # Know detail about spheres: radius is set as inverse (curvature)
-    if attr == "_Sphere__rad":
-        def update(new_value):
-            setattr(a, attr, 1/float(new_value))
-    else:
-        def update(new_value):
-            setattr(a, attr, float(new_value))
-    volatile_a = VolatileMirror(a) if isinstance(a, _geo.Mirror) else VolatileGeometry(a)
-    return volatile_a, update
+    variables = []
+    attributes = []
+    for attr in dir(obj):
+        if attr in obj.__dict__ and type(getattr(obj, attr)) in [float, int]:
+            for var in Variable._all:
+                if getattr(obj, attr) in [float(var), int(var)]:
+                    variables.append(var)
+                    if attr == "_Sphere__crv":
+                        # Need extra catch here
+                        attributes.append("_Sphere__rad")
+                    else:
+                        attributes.append(attr)
+    def localize(attr):
+        # Needed to get local copy of attr in for loop
+        # when registering more than one variable
+        if attr == "_Sphere__rad":
+            var._register(lambda x: setattr(obj, attr, 1/float(x)))
+        else:
+            var._register(lambda x: setattr(obj, attr, float(x)))
+    for var, attr in zip(variables, attributes):
+        localize(attr)
+        var.set(var._val)
+    return VolatileMirror(obj) if isinstance(obj, _geo.Mirror) else VolatileGeometry(obj)
