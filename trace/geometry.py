@@ -239,7 +239,7 @@ class Sphere(Geometry):
         # Top section
         for m in range(M-1):
             trigs.append((0, m+1, m+2))
-        trigs.append((0, 1, M))
+        trigs.append((M, 1, 0))
         # Rings after top
         for n in range(0, N-2):
             for m in range(M-1):
