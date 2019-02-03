@@ -41,4 +41,4 @@ from .scene import Scene, SpiralSource, RadialSource, DenseSource
 from .optim import Variable, VolatileScene, make_volatile
 
 # Helper for vectors
-from ._utils import vec, pos, basis
+from ._utils import vec, pos, basis, vabs

@@ -34,22 +34,22 @@ class VolatileGeometry(_unsafe.Volatile, _geo.Geometry):
     def __init__(self, obj):
         if not isinstance(obj, _geo.Geometry):
             raise TypeError
-        self.__obj = obj
+        self._obj = obj
 
     def __getattribute__(self, name):
-        if name in ["__init__", "__str__", "_VolatileGeometry__obj"]:
+        if name in ["__init__", "__str__", "_obj"]:
             return object.__getattribute__(self, name)
-        return getattr(self.__obj, name)
+        return getattr(self._obj, name)
 
     def __str__(self):
-        return "Volatile" + str(self.__obj)
+        return "Volatile" + str(self._obj)
 
 class VolatileMirror(VolatileGeometry, _geo.Mirror):
 
     def __init__(self, mirror):
         if not isinstance(mirror, _geo.Mirror):
             raise TypeError
-        self.__obj = mirror
+        self._obj = mirror
 
 class VolatileScene(_unsafe.Volatile, _scene.Scene):
     """
