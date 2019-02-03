@@ -381,9 +381,10 @@ class TestGeometrySphere(TestCase):
         with self.assertRaises(AttributeError):
             lens.intersect(None)
 
-    @unittest.skip("Missing tests")
     def test_normal(self):
-        pass
+        lens = geometry.Sphere(1, 1, 1, pos=_utils.pos(0,0,0))
+        normal = _utils.vec(0,0,1)
+        self.assertSameArray(normal, lens.normal(_utils.pos(0,0,0)))
 
 class TestGeometryPlane(TestCase):
 
@@ -412,40 +413,31 @@ class TestGeometryPlane(TestCase):
         ray.k = np.array([0, 0, -1])
         self.assertSameArray(None, plane.intersect(ray))
 
-    @unittest.skip("Missing tests")
     def test_contains(self):
-        pass
+        plane = geometry.Plane(pos=np.zeros(3), width=_utils.vec(1,0,0), height=_utils.vec(0,1,0))
 
-    @unittest.skip("Missing tests")
+        self.assertTrue(plane.contains(_utils.pos(0.5, 0.5, 0)))
+        self.assertTrue(plane.contains(_utils.pos(1e-20, 1e-20, 0)))
+        self.assertTrue(plane.contains(_utils.pos(0.5, 0.5, 0+1e-30)))
+
+        self.assertFalse(plane.contains(_utils.pos(1.5, 0.5, 0)))
+        self.assertFalse(plane.contains(_utils.pos(0, -0.5, 0)))
+        self.assertFalse(plane.contains(_utils.pos(0.5, 0.5, 0.1)))
+
     def test_intersect(self):
-        pass
+        plane = geometry.Plane(pos=np.zeros(3), width=_utils.vec(1,0,0), height=_utils.vec(0,1,0))
 
-    @unittest.skip("Missing tests")
+        ray = rays.Ray(_utils.pos(.5,.5,7), k=_utils.vec(0,0,-1))
+        self.assertApproxArray(plane.intersect(ray), _utils.pos(.5,.5,0))
+
+        ray = rays.Ray(_utils.pos(.5,.5,7), k=_utils.vec(0,0,1))
+        self.assertEqual(plane.intersect(ray), None)
+
     def test_normal(self):
-        pass
-
-class TestGeometryIntegration(TestCase):
-
-    def test_refract_sphere_lens(self):
-        lens = geometry.SphereLens(1, 1, 1, n=1.0, pos=_utils.pos(0,0,1))
-
-        ray = rays.Ray(origin=np.array([0, 0, 2]))
-        ray.k = np.array([0, 0, -1])
-
-        inter = lens.intersect(ray)
-        lens.refract(ray, inter, 1.0)
-        self.assertApproxArray(ray.k, np.array([0, 0, -1]))
-        self.assertSameArray(inter, ray.pos)
-        self.assertEqual(None, lens.intersect(ray))
-
-        ray = rays.Ray(origin=np.array([0, 0, 1+1e-5]))
-        ray.k = np.array([0, -1, -1])
-
-        inter = lens.intersect(ray)
-        lens.refract(ray, inter, 1.0)
-        self.assertApproxArray(ray.k, np.array([0, -1, -1]), eps=1e-4)
-        self.assertSameArray(inter, ray.pos)
-        self.assertEqual(None, lens.intersect(ray))
+        vec = _utils.vec(1,4,7)
+        n, w, h = _utils.basis(vec)
+        plane = geometry.Plane(normal=vec, width=w, height=h)
+        self.assertApproxArray(n, plane.normal(None))
 
 class TestGeometryScreen(TestCase):
 
@@ -482,6 +474,29 @@ class TestSceneDenseSource(TestCase):
     @unittest.skip("Missing tests")
     def test_missing():
         pass
+
+class TestGeometryIntegration(TestCase):
+
+    def test_refract_sphere_lens(self):
+        lens = geometry.SphereLens(1, 1, 1, n=1.0, pos=_utils.pos(0,0,1))
+
+        ray = rays.Ray(origin=np.array([0, 0, 2]))
+        ray.k = np.array([0, 0, -1])
+
+        inter = lens.intersect(ray)
+        lens.refract(ray, inter, 1.0)
+        self.assertApproxArray(ray.k, np.array([0, 0, -1]))
+        self.assertSameArray(inter, ray.pos)
+        self.assertEqual(None, lens.intersect(ray))
+
+        ray = rays.Ray(origin=np.array([0, 0, 1+1e-5]))
+        ray.k = np.array([0, -1, -1])
+
+        inter = lens.intersect(ray)
+        lens.refract(ray, inter, 1.0)
+        self.assertApproxArray(ray.k, np.array([0, -1, -1]), eps=1e-4)
+        self.assertSameArray(inter, ray.pos)
+        self.assertEqual(None, lens.intersect(ray))
 
 if __name__ == "__main__":
     unittest.main()
