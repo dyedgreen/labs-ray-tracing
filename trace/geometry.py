@@ -436,8 +436,8 @@ class Screen(Plane):
     screen, used to record images.
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.__hits = []
 
     def refract(self, ray, intersect, n):
@@ -460,3 +460,35 @@ class Screen(Plane):
     @property
     def hits(self):
         return self.__hits
+
+class Filter(Screen):
+    """
+    Implements an optical
+    filter that filters
+    rays based on user
+    defined criteria.
+
+    The criterion is passed
+    as the named parameter
+    rule and defines a
+    callable object that
+    takes one argument
+    (a ray) and returns
+    a boolean.
+    """
+
+    def __init__(self, rule=lambda ray: True, **kwargs):
+        super().__init__(**kwargs)
+        if not callable(rule):
+            raise TypeError
+        self.__rule = rule
+
+    def refract(self, ray, intersect, n):
+        if  self.__rule(ray):
+            ray.pos = intersect
+        else:
+            super().refract(ray, intersect, n)
+
+    @property
+    def color(self):
+        return "#00FF44"

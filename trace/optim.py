@@ -44,10 +44,10 @@ class VolatileGeometry(_unsafe.Volatile, _geo.Geometry):
     def __str__(self):
         return "Volatile" + str(self._obj)
 
-class VolatileMirror(VolatileGeometry, _geo.Mirror):
+class VolatileLens(VolatileGeometry, _geo.Lens):
 
     def __init__(self, mirror):
-        if not isinstance(mirror, _geo.Mirror):
+        if not isinstance(mirror, _geo.Lens):
             raise TypeError
         self._obj = mirror
 
@@ -155,4 +155,4 @@ def make_volatile(obj):
     for var, attr in zip(variables, attributes):
         localize(attr)
         var.set(var._val)
-    return VolatileMirror(obj) if isinstance(obj, _geo.Mirror) else VolatileGeometry(obj)
+    return VolatileLens(obj) if isinstance(obj, _geo.Lens) else VolatileGeometry(obj)

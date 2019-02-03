@@ -35,7 +35,7 @@ from . import scene
 from . import optim
 
 # Make frequently used objects available directly
-from .geometry import SphereLens, PlaneLens, Screen, SphereMirror, PlaneMirror, SphereSplitter, PlaneSplitter
+from .geometry import SphereLens, PlaneLens, SphereMirror, PlaneMirror, SphereSplitter, PlaneSplitter, Screen, Filter
 from .rays import Ray
 from .scene import Scene, SpiralSource, RadialSource, DenseSource
 from .optim import Variable, VolatileScene, make_volatile
