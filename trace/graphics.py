@@ -10,7 +10,7 @@ import matplotlib.pyplot as _plt
 from . import _utils as _u
 
 
-def render_3d(scene, extend=1.0, plot_free=True):
+def render_3d(scene, extend=1.0, plot_free=True, labels=True):
     """
     Render all rays in scene
     as 3d lines using matplotlib
@@ -35,7 +35,8 @@ def render_3d(scene, extend=1.0, plot_free=True):
         y = _np.array([pos[1] for pos in points])
         z = _np.array([pos[2] for pos in points])
         ax.plot_trisurf(x, y, triangles, z, alpha=0.3, color=color)
-        ax.text3D(*geo._pos, str(geo))
+        if labels:
+            ax.text3D(*geo._pos, str(geo))
     return fig
 
 def render_2d(screen):
