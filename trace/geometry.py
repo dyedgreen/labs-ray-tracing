@@ -4,6 +4,7 @@ the rays.
 """
 
 import numpy as _np
+from random import random as _rand
 from . import _utils as _u
 
 
@@ -146,6 +147,25 @@ class Mirror(Geometry):
         # Update k and pos
         ray.pos = intersect
         ray.k = k
+
+class Splitter(Mirror):
+    """
+    Partially translucent mirrors,
+    that let through a fraction of
+    the rays.
+    """
+
+    def __init__(self, *args, fraction=0.5, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.__frc = fraction
+
+    def refract(self, ray, intersect, n):
+        if _rand() < self.__frc:
+            # Ray just passes through
+            ray.pos = intersect
+        else:
+            super().refract(ray, intersect, n)
 
 # Geometry classes (abstract)
 
@@ -397,6 +417,18 @@ class PlaneMirror(Mirror, Plane):
     @property
     def color(self):
         return "#AAAA00"
+
+class SphereSplitter(Splitter, Sphere):
+
+    @property
+    def color(self):
+        return "#AA2200"
+
+class PlaneSplitter(Splitter, Plane):
+
+    @property
+    def color(self):
+        return "#AA2200"
 
 class Screen(Plane):
     """
