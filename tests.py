@@ -441,9 +441,22 @@ class TestGeometryPlane(TestCase):
 
 class TestGeometryScreen(TestCase):
 
-    @unittest.skip("Missing tests")
-    def test_missing():
-        pass
+    def test_properties(self):
+        screen = geometry.Screen()
+        ray = rays.Ray(origin=_utils.pos(.5,.5,1), k=_utils.vec(0,0,-1))
+        screen.refract(ray, _utils.pos(.5,.5,0), 1)
+
+        self.assertEqual(type([]), type(screen.hits))
+        self.assertEqual(1, len(screen.hits))
+        self.assertEqual(ray, screen.hits[0])
+
+    def test_refract(self):
+        screen = geometry.Screen()
+        ray = rays.Ray(origin=_utils.pos(.5,.5,1), k=_utils.vec(0,0,-1))
+        screen.refract(ray, _utils.pos(.5,.5,0), 1)
+
+        self.assertTrue(ray.terminated)
+        self.assertSameArray(ray.pos, _utils.pos(.5,.5,0))
 
 class TestScene(TestCase):
 
