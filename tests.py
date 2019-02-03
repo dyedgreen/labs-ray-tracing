@@ -4,10 +4,43 @@ Provides unit tests
 
 import unittest
 import numpy as np
+import random as rand
 from trace import rays
 from trace import geometry
 from trace import scene
 from trace import _utils
+
+
+class MockGeometryNormal:
+    """
+    Wrapper for geometry
+    types that implements
+    a normal. This is used
+    to test abstract geometry
+    classes.
+    """
+
+    def __init__(self, geo_obj, normal=_utils.vec(0,0,1)):
+        self._obj = geo_obj
+        self._normal = normal / _utils.vabs(normal)
+
+    def __getattribute__(self, name):
+        if name in ["__init__", "_obj", "_normal", "normal"]:
+            return object.__getattribute__(self, name)
+        attr = object.__getattribute__(self._obj, name)
+        if callable(attr):
+            # Wrapper proxies self to
+            # allow access to normal
+            # from methods
+            def wrapper(*args, **kwargs):
+                return getattr(type(self._obj), name)(self, *args, **kwargs)
+            return wrapper
+        else:
+            return attr
+
+    def normal(self, intersect):
+        return self._normal
+
 
 class TestCase(unittest.TestCase):
 
@@ -169,15 +202,122 @@ class TestGeometry(TestCase):
 
 class TestGeometryLens(TestCase):
 
-    @unittest.skip("Missing tests")
-    def test_missing():
-        pass
+    def test_implements_refract(self):
+        lens = geometry.Lens()
+        self.assertTrue(callable(lens.refract))
+
+    def test_refract(self):
+        # Check it updates position
+        lens = MockGeometryNormal(geometry.Lens())
+        ray = rays.Ray(k=_utils.vec(0,1,1))
+        new_pos = _utils.pos(10, 34.2, -70)
+        lens.refract(ray, new_pos, 1)
+        self.assertSameArray(new_pos, ray.pos)
+
+        # Check Babinet’s principle holds
+        tests = [
+            (_utils.vec(5,0,0), _utils.vec(1,0,0), 1, 2),
+            (_utils.vec(1,3,5), _utils.vec(1,-2,7), 1, 3.1),
+            (_utils.vec(0.246,5.8,24.9), _utils.vec(45.6,-2.888,3.1), 1, 1.1),
+            (_utils.vec(-3,1.8,0), _utils.vec(1.7,2.2,-1), 1, 7.24),
+            (_utils.vec(43.4,9.38,-5), _utils.vec(-1.7,22,-1), 2.1, 4.15),
+            (_utils.vec(1.4,2.8,3.9), _utils.vec(-1.7,22,-1), 2, 2),
+        ]
+        def angle(a, b):
+            return np.arccos(abs(a.dot(b) / _utils.vabs(a) / _utils.vabs(b)))
+        for k, normal, n_prev, n_lens in tests:
+            lens = MockGeometryNormal(geometry.Lens(n=n_lens), normal)
+            ray = rays.Ray(k=k)
+
+            n_1_sin_1 = n_prev * np.sin(angle(ray.k, normal))
+            wave_1 = ray.wavelength
+            lens.refract(ray, np.zeros(3), n_prev)
+            n_2_sin_2 = n_lens * np.sin(angle(ray.k, normal))
+            wave_2 = ray.wavelength
+
+            self.assertAlmostEqual(n_1_sin_1, n_2_sin_2)
+            self.assertAlmostEqual(wave_1, wave_2)
 
 class TestGeometryMirror(TestCase):
 
-    @unittest.skip("Missing tests")
-    def test_missing():
-        pass
+    def test_implements_refract(self):
+        mirror = geometry.Mirror()
+        self.assertTrue(callable(mirror.refract))
+
+    def test_refract(self):
+        # Check it updates position
+        mirror = MockGeometryNormal(geometry.Mirror())
+        ray = rays.Ray(k=_utils.vec(0,1,1))
+        new_pos = _utils.pos(10, 34.2, -70)
+        mirror.refract(ray, new_pos, 1)
+        self.assertSameArray(new_pos, ray.pos)
+
+        # Check angle in is angle out
+        tests = [
+            (_utils.vec(5,0,0), _utils.vec(1,0,0), 1, 2),
+            (_utils.vec(1,3,5), _utils.vec(1,-2,7), 1, 3.1),
+            (_utils.vec(0.246,5.8,24.9), _utils.vec(45.6,-2.888,3.1), 1, 1.1),
+            (_utils.vec(-3,1.8,0), _utils.vec(1.7,2.2,-1), 1, 7.24),
+            (_utils.vec(43.4,9.38,-5), _utils.vec(-1.7,22,-1), 2.1, 4.15),
+        ]
+        def angle(a, b):
+            return np.arccos(abs(a.dot(b) / _utils.vabs(a) / _utils.vabs(b)))
+        for k, normal, n_prev, n_lens in tests:
+            mirror = MockGeometryNormal(geometry.Mirror(n=n_lens), normal)
+            ray = rays.Ray(k=k)
+
+            ang_1 = angle(ray.k, normal)
+            wave_1 = ray.wavelength
+            mirror.refract(ray, np.zeros(3), n_prev)
+            ang_2 = angle(ray.k, normal)
+            wave_2 = ray.wavelength
+
+            self.assertAlmostEqual(ang_1, ang_2)
+            self.assertAlmostEqual(wave_1, wave_2)
+
+class TestGeometrySplitter(TestCase):
+
+    def test_implements_refract(self):
+        splitter = geometry.Splitter()
+        self.assertTrue(callable(splitter.refract))
+
+    def test_refract(self):
+        # As refract in Splitter invokes
+        # super, our proxy class will
+        # cause runtime errors
+        class MockSplitter(geometry.Splitter):
+            def normal(*_):
+                return _utils.vec(0,0,1)
+
+        # Check it updates position
+        splitter = MockSplitter()
+        ray = rays.Ray(k=_utils.vec(0,1,1))
+        new_pos = _utils.pos(10, 34.2, -70)
+        splitter.refract(ray, new_pos, 1)
+        self.assertSameArray(new_pos, ray.pos)
+
+        # Check angle in is angle out
+        tests = [
+            (_utils.vec(5,0,0), 1, 2),
+            (_utils.vec(1,3,5), 1, 3.1),
+            (_utils.vec(0.246,5.8,24.9), 1, 1.1),
+            (_utils.vec(-3,1.8,0), 1, 7.24),
+            (_utils.vec(43.4,9.38,-5), 2.1, 4.15),
+        ]
+        def angle(a, b):
+            return np.arccos(abs(a.dot(b) / _utils.vabs(a) / _utils.vabs(b)))
+        for k, n_prev, n_lens in tests:
+            splitter = MockSplitter(n=n_lens)
+            ray = rays.Ray(k=k)
+
+            ang_1 = angle(ray.k, splitter.normal())
+            wave_1 = ray.wavelength
+            splitter.refract(ray, np.zeros(3), n_prev)
+            ang_2 = angle(ray.k, splitter.normal())
+            wave_2 = ray.wavelength
+
+            self.assertAlmostEqual(ang_1, ang_2)
+            self.assertAlmostEqual(wave_1, wave_2)
 
 class TestGeometrySphere(TestCase):
 
@@ -241,6 +381,10 @@ class TestGeometrySphere(TestCase):
         with self.assertRaises(AttributeError):
             lens.intersect(None)
 
+    @unittest.skip("Missing tests")
+    def test_normal(self):
+        pass
+
 class TestGeometryPlane(TestCase):
 
     def test_properties(self):
@@ -268,9 +412,21 @@ class TestGeometryPlane(TestCase):
         ray.k = np.array([0, 0, -1])
         self.assertSameArray(None, plane.intersect(ray))
 
-class TestGeometrySphereLens(TestCase):
+    @unittest.skip("Missing tests")
+    def test_contains(self):
+        pass
 
-    def test_refract(self):
+    @unittest.skip("Missing tests")
+    def test_intersect(self):
+        pass
+
+    @unittest.skip("Missing tests")
+    def test_normal(self):
+        pass
+
+class TestGeometryIntegration(TestCase):
+
+    def test_refract_sphere_lens(self):
         lens = geometry.SphereLens(1, 1, 1, n=1.0, pos=_utils.pos(0,0,1))
 
         ray = rays.Ray(origin=np.array([0, 0, 2]))
