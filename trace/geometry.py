@@ -310,11 +310,10 @@ class Sphere(Geometry):
 
         # Check if contained
         inter_1 = ray.pos + l_1 * ray.k_hat
-        inter_2 = ray.pos + l_2 * ray.k_hat
-
         if l_1 > 0 and self.contains(inter_1):
             return inter_1
-        elif l_2 > 0 and self.contains(inter_2):
+        inter_2 = ray.pos + l_2 * ray.k_hat
+        if l_2 > 0 and self.contains(inter_2):
             return inter_2
         return None
 
