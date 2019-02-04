@@ -302,7 +302,7 @@ class Sphere(Geometry):
         l_1 = d_dot_k + sqrt
         l_2 = d_dot_k - sqrt
 
-        # We cant to check the smaller l first
+        # We want to check the smaller l first
         # Don't need absolute value, as l_n > 0
         # is enforced below
         if l_1 > l_2:
