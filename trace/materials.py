@@ -25,10 +25,15 @@ c = 299792458.
 def _f_to_l(f):
     return c / f
 
-def _accept_ray(func):
+def accept_ray(func):
     """
     Decorator for accepting
-    rays of wavelengths
+    rays of wavelengths or
+    wavelengths.
+
+    This is useful when writing
+    custom refractive index
+    functions.
     """
     def wrapper(arg):
         if type(arg) == _rays.Ray:
@@ -57,7 +62,7 @@ def sellmeier(wavelen, B, C):
 
 # Specific glasses
 
-@_accept_ray
+@accept_ray
 def BK7(wavelen):
     return sellmeier(
         wavelen,
@@ -65,7 +70,7 @@ def BK7(wavelen):
         (0.00600069867, 0.0200179144, 103.560653)
     )
 
-@_accept_ray
+@accept_ray
 def BAF10(wavelen):
     return sellmeier(
         wavelen,
@@ -73,7 +78,7 @@ def BAF10(wavelen):
         (0.00926681282, 0.0424489805, 105.613573)
     )
 
-@_accept_ray
+@accept_ray
 def BAK1(wavelen):
     return sellmeier(
         wavelen,
@@ -81,7 +86,7 @@ def BAK1(wavelen):
         (0.00644742752, 0.0222284402, 107.297751)
     )
 
-@_accept_ray
+@accept_ray
 def FK51A(wavelen):
     return sellmeier(
         wavelen,
