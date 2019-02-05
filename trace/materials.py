@@ -33,6 +33,9 @@ def _accept_ray(func):
     def wrapper(arg):
         if type(arg) == _rays.Ray:
             return func(_f_to_l(arg.frequency))
+        elif arg is None:
+            # When no ray is given, assume 500nm
+            return func(500e-9)
         return func(float(arg))
     return wrapper
 
@@ -43,9 +46,12 @@ def sellmeier(wavelen, B, C):
     tuples that contain the Sellmeier
     constants.
     """
-    l = wavelen**2
+    l = (wavelen*1e6)**2
     return _np.sqrt(
-        1 + B[0] * l / (l - C[0]) + B[1] * l / (l - C[1]) + B[2] * l / (l - C[2])
+        1 + \
+        B[0] * l / (l - C[0]) + \
+        B[1] * l / (l - C[1]) + \
+        B[2] * l / (l - C[2])
     )
 
 
