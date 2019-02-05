@@ -6,6 +6,7 @@ the rays.
 import numpy as _np
 from random import random as _rand
 from . import _utils as _u
+from . import rays as _rays
 
 
 # Abstract classes
@@ -19,16 +20,40 @@ class Geometry:
     avoid runtime checks and expect correct
     arguments. This is done, since they will be
     called very often during the simulation.
+
+    When passing n, instead of a fixed value, a
+    callable can be passed. That callable should
+    accept one argument, a ray, and return the
+    refractive index appropriate for that ray.
+
+    Note: The callable may also be called with
+    None as the argument, in which case a generic
+    refractive index should be given.
     """
 
     def __init__(self, pos=_np.zeros(3), n=1.0):
         if type(pos) != _np.ndarray or len(pos) != 3:
             raise TypeError
         self._pos = pos
-        self._n = float(n)
+        if callable(n):
+            self._n = n
+        else:
+            self._n = float(n)
 
     @property
     def n(self):
+        return self.ref_idx()
+
+    def ref_idx(self, *args):
+        """
+        Return the refractive
+        index that should be seen
+        by a given ray.
+        """
+        if callable(self._n):
+            return \
+                self._n(args[0]) if len(args) == 1 and type(args[0]) == _rays.Ray else \
+                self._n(None)
         return self._n
 
     @property
@@ -105,16 +130,14 @@ class Lens(Geometry):
         k_p_vabs = _u.vabs(k_p)
         if  k_p_vabs != 0:
             k_p = k_p / k_p_vabs
-        
-        sin = n / self.n * k_p_vabs / _u.vabs(ray.k)
+
+        sin = n / self.ref_idx(ray) * k_p_vabs / _u.vabs(ray.k)
 
         # Root bottom elem
         root_bottom = (-1) * (sin - 1) * (sin + 1)
         if root_bottom <= 0:
             # Catch numeric errors
             root_bottom = 1e-30
-
-        wavelength = ray.wavelength
 
         # Parallel component, magnitude 1
         k_para = ray.k - k_p * k_p_vabs
@@ -126,8 +149,6 @@ class Lens(Geometry):
         ray.k = \
             k_p * _u.sign(k_p_vabs) * abs(sin / _np.sqrt(root_bottom)) \
             + k_para
-
-        ray.wavelength = wavelength
 
         # Update ray position
         ray.pos = intersect

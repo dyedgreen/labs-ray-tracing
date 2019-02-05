@@ -11,11 +11,13 @@ class Ray:
     model optical rays.
     """
 
-    def __init__(self, origin=_np.zeros(3), k=_np.zeros(3)):
+    def __init__(self, origin=_np.zeros(3), k=_np.zeros(3), frequency=1):
         self._path = []
         self._k = _np.zeros(3)
+        self._f = 1.0
         self.pos = origin
         self.k = k
+        self.frequency = frequency
         self.terminated = False # For use by simulation and screens
 
     @property
@@ -30,25 +32,33 @@ class Ray:
 
     @property
     def k(self):
+        """
+        Direction of light
+        propagation
+        """
         return self._k
 
     @property
     def k_hat(self):
-        return self._k / _u.vabs(self._k)
+        """
+        Alias for k
+        """
+        return self._k
 
     @property
-    def wavelength(self):
-        return 2 * _np.pi / _u.vabs(self._k)
+    def frequency(self):
+        return self._f
 
     @k.setter
     def k(self, val):
         if not type(val) == type(self._k) or len(val) != 3:
             raise TypeError
-        self._k = val
+        mag = _u.vabs(val)
+        self._k = val / mag if mag != 0 else _np.zeros(3)
 
-    @wavelength.setter
-    def wavelength(self, val):
-        self.k = 2 * _np.pi / float(val) * self.k_hat
+    @frequency.setter
+    def frequency(self, val):
+        self._f = float(val)
 
     @property
     def path(self):

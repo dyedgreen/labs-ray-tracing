@@ -129,7 +129,7 @@ class TestRays(TestCase):
 
         self.assertSameArray(ray.pos, origin)
         ray.k = origin * 3
-        self.assertSameArray(ray.k, origin * 3)
+        self.assertSameArray(ray.k, origin / _utils.vabs(origin))
 
         ray.pos = origin + origin
         self.assertTrue(len(ray) == 2)
@@ -138,21 +138,15 @@ class TestRays(TestCase):
         self.assertEqual(len(ray), len(ray.path))
         self.assertSameArray(ray[0], ray.path[0])
 
-        wavelen = 1
-        ray.wavelength = wavelen
-        self.assertAlmostEqual(wavelen, ray.wavelength)
-
-        ray.k = np.array([1, 0, 0])
-        self.assertAlmostEqual(ray.wavelength, 2 * np.pi)
+        freq = 7.9
+        ray.frequency = freq
+        self.assertAlmostEqual(freq, ray.frequency)
 
         with self.assertRaises(TypeError):
             ray.k = [1,2,3]
 
         with self.assertRaises(TypeError):
             ray.pos = 6.4
-
-        with self.assertRaises(ValueError):
-            ray.wavelength = "Hello World!"
 
     def test_defaults(self):
         ray = rays.Ray()
@@ -230,13 +224,10 @@ class TestGeometryLens(TestCase):
             ray = rays.Ray(k=k)
 
             n_1_sin_1 = n_prev * np.sin(angle(ray.k, normal))
-            wave_1 = ray.wavelength
             lens.refract(ray, np.zeros(3), n_prev)
             n_2_sin_2 = n_lens * np.sin(angle(ray.k, normal))
-            wave_2 = ray.wavelength
 
             self.assertAlmostEqual(n_1_sin_1, n_2_sin_2)
-            self.assertAlmostEqual(wave_1, wave_2)
 
 class TestGeometryMirror(TestCase):
 
@@ -267,13 +258,10 @@ class TestGeometryMirror(TestCase):
             ray = rays.Ray(k=k)
 
             ang_1 = angle(ray.k, normal)
-            wave_1 = ray.wavelength
             mirror.refract(ray, np.zeros(3), n_prev)
             ang_2 = angle(ray.k, normal)
-            wave_2 = ray.wavelength
 
             self.assertAlmostEqual(ang_1, ang_2)
-            self.assertAlmostEqual(wave_1, wave_2)
 
 class TestGeometrySplitter(TestCase):
 
@@ -311,13 +299,10 @@ class TestGeometrySplitter(TestCase):
             ray = rays.Ray(k=k)
 
             ang_1 = angle(ray.k, splitter.normal())
-            wave_1 = ray.wavelength
             splitter.refract(ray, np.zeros(3), n_prev)
             ang_2 = angle(ray.k, splitter.normal())
-            wave_2 = ray.wavelength
 
             self.assertAlmostEqual(ang_1, ang_2)
-            self.assertAlmostEqual(wave_1, wave_2)
 
 class TestGeometrySphere(TestCase):
 
@@ -507,7 +492,7 @@ class TestGeometryIntegration(TestCase):
 
         inter = lens.intersect(ray)
         lens.refract(ray, inter, 1.0)
-        self.assertApproxArray(ray.k, np.array([0, -1, -1]), eps=1e-4)
+        self.assertApproxArray(ray.k, np.array([0, -1, -1]/np.sqrt(2)), eps=1e-4)
         self.assertSameArray(inter, ray.pos)
         self.assertEqual(None, lens.intersect(ray))
 
