@@ -5,6 +5,7 @@ Provides unit tests
 import unittest
 import numpy as np
 import random as rand
+import trace
 from trace import rays
 from trace import geometry
 from trace import scene

@@ -15,13 +15,14 @@ class Source:
     a scene.
     """
 
-    def __init__(self, pos=_u.pos(0,0,0), k=_u.vec(0, 0, 1)):
+    def __init__(self, pos=_u.pos(0,0,0), k=_u.vec(0, 0, 1), frequency=1):
         if not type(pos) is _np.ndarray or len(pos) != 3:
             raise TypeError
         if not type(k) is _np.ndarray or len(k) != 3:
             raise TypeError
         self._pos = pos
         self._k = k
+        self._f = frequency
 
     def spawn(self):
         """
@@ -49,7 +50,11 @@ class SpiralSource(Source):
             theta = i * 2 * _np.pi / self.__stp
             r = self.__rad * i / self.__cap
             rays.append(
-                _rays.Ray(origin=(self._pos + x*_np.cos(theta)*r + y*_np.sin(theta)*r), k=self._k)
+                _rays.Ray(
+                    origin=(self._pos + x*_np.cos(theta)*r + y*_np.sin(theta)*r),
+                    k=self._k,
+                    frequency=self._f
+                )
             )
         return rays
 
@@ -80,7 +85,11 @@ class RadialSource(Source):
             for i in range(self.__stp):
                 theta = i * 2 * _np.pi / self.__stp
                 rays.append(
-                    _rays.Ray(origin=(self._pos + x*_np.cos(theta)*r + y*_np.sin(theta)*r), k=self._k)
+                    _rays.Ray(
+                        origin=(self._pos + x*_np.cos(theta)*r + y*_np.sin(theta)*r),
+                        k=self._k,
+                        frequency=self._f
+                    )
                 )
         return rays
 
@@ -107,7 +116,7 @@ class DenseSource(Source):
                 pos = origin + x*2*i*self.__rad/N + y*2*j*self.__rad/N
                 if _u.vabs(pos - self._pos) <= self.__rad:
                     rays.append(
-                        _rays.Ray(origin=pos, k=self._k)
+                        _rays.Ray(origin=pos, k=self._k, frequency=self._f)
                     )
         return rays
 
@@ -195,7 +204,7 @@ class Scene:
                 break
             # TODO: Think about refracting in different directions -> different n order!
             elem.refract(ray, intersect, current_n)
-            current_n = elem.n if isinstance(elem, _geo.Lens) else current_n
+            current_n = elem.ref_idx(ray) if isinstance(elem, _geo.Lens) else current_n
             step += 1
 
     def trace(self, max_steps=64):

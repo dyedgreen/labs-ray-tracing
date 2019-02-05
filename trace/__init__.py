@@ -30,9 +30,10 @@ demo.
 # Make packages available
 from . import geometry
 from . import graphics
+from . import materials
+from . import optim
 from . import rays
 from . import scene
-from . import optim
 
 # Make frequently used objects available directly
 from .geometry import SphereLens, PlaneLens, SphereMirror, PlaneMirror, SphereSplitter, PlaneSplitter, Screen, Filter
