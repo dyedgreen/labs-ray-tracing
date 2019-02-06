@@ -9,6 +9,7 @@ import trace
 from trace import rays
 from trace import geometry
 from trace import scene
+from trace import materials
 from trace import _utils
 
 
@@ -444,36 +445,6 @@ class TestGeometryScreen(TestCase):
         self.assertTrue(ray.terminated)
         self.assertSameArray(ray.pos, _utils.pos(.5,.5,0))
 
-class TestScene(TestCase):
-
-    @unittest.skip("Missing tests")
-    def test_missing():
-        pass
-
-class TestSceneSource(TestCase):
-
-    @unittest.skip("Missing tests")
-    def test_missing():
-        pass
-
-class TestSceneSpiralSource(TestCase):
-
-    @unittest.skip("Missing tests")
-    def test_missing():
-        pass
-
-class TestSceneRadialSource(TestCase):
-
-    @unittest.skip("Missing tests")
-    def test_missing():
-        pass
-
-class TestSceneDenseSource(TestCase):
-
-    @unittest.skip("Missing tests")
-    def test_missing():
-        pass
-
 class TestGeometryIntegration(TestCase):
 
     def test_refract_sphere_lens(self):
@@ -496,6 +467,48 @@ class TestGeometryIntegration(TestCase):
         self.assertApproxArray(ray.k, np.array([0, -1, -1]/np.sqrt(2)), eps=1e-4)
         self.assertSameArray(inter, ray.pos)
         self.assertEqual(None, lens.intersect(ray))
+
+class TestMaterials(TestCase):
+
+    def test_accept_ray(self):
+
+        @materials.accept_ray
+        def mock(arg):
+            return arg
+
+        self.assertEqual(453e-9, mock(453e-9))
+        l = 603e-9
+        self.assertAlmostEqual(l, mock(rays.Ray(frequency=materials.c / l)))
+        self.assertEqual(500e-9, mock(None))
+
+    def test_sellmeier(self):
+
+        self.assertEqual(1.5013, round(materials.sellmeier(
+            1.5e-6,
+            (1.03961212, 0.231792344, 1.01046945),
+            (0.00600069867, 0.0200179144, 103.560653)
+        ), 4))
+
+    def test_BK7(self):
+        self.assertEqual(1.4989, round(materials.BK7(1.683e-6), 4))
+        self.assertEqual(1.5112, round(materials.BK7(0.78e-6), 4))
+        self.assertEqual(1.4868, round(materials.BK7(2.46e-6), 4))
+
+    def test_BAF10(self):
+        self.assertEqual(1.6450, round(materials.BAF10(1.683e-6), 4))
+        self.assertEqual(1.6606, round(materials.BAF10(0.78e-6), 4))
+        self.assertEqual(1.6328, round(materials.BAF10(2.46e-6), 4))
+
+    def test_BAK1(self):
+        self.assertEqual(1.5537, round(materials.BAK1(1.683e-6), 4))
+        self.assertEqual(1.5658, round(materials.BAK1(0.78e-6), 4))
+        self.assertEqual(1.5436, round(materials.BAK1(2.46e-6), 4))
+
+    def test_FK51A(self):
+        self.assertEqual(1.4750, round(materials.FK51A(1.683e-6), 4))
+        self.assertEqual(1.4826, round(materials.FK51A(0.78e-6), 4))
+        self.assertEqual(1.4683, round(materials.FK51A(2.46e-6), 4))
+
 
 if __name__ == "__main__":
     unittest.main()
