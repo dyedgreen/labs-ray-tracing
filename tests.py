@@ -509,6 +509,20 @@ class TestMaterials(TestCase):
         self.assertEqual(1.4826, round(materials.FK51A(0.78e-6), 4))
         self.assertEqual(1.4683, round(materials.FK51A(2.46e-6), 4))
 
+    # These tests may fail to run when there is no network
+    # connection, or the online source changes
+    def test_online(self):
+        self.assertEqual(materials.BK7(None), materials.online("N-BK7")(None))
+        with self.assertRaises(Exception):
+            materials.online("404-does-not-exist")
+
+    @unittest.skipIf(True, "Skipping long test")
+    def test_online_types(self):
+        for t in materials.online_types:
+            try:
+                materials.online(t)(500e-9)
+            except Exception as e:
+                raise AssertionError("Got exception {}".format(e))
 
 if __name__ == "__main__":
     unittest.main()
