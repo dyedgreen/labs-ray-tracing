@@ -8,6 +8,15 @@ Values obtained from:
 M. N. Polyanskiy,
 "Refractive index database,"
 https://refractiveindex.info
+https://github.com/polyanskiy/refractiveindex.info-database
+[Accessed on 2019-02-05]
+
+These values originate from
+the Schott data sheet on
+different types of glass.
+
+https://www.schott.com/advanced_optics
+https://www.schott.com/d/advanced_optics/ac85c64c-60a0-4113-a9df-23ee1be20428/1.1/schott-optical-glass-collection-datasheets-english-17012017.pdf
 [Accessed on 2019-02-05]
 """
 
