@@ -1,0 +1,8 @@
+# This project requires numpy and matplotlib
+# Note: This does not include Jupyter, which
+#       is needed to view the demo notebook.
+#       Refer to https://jupyter.org/ for
+#       installation instructions.
+
+numpy
+matplotlib

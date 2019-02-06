@@ -20,7 +20,7 @@ directly). The module was designed to be easy and safe to use.
 
 To accommodate the need for optimizing parameters of lenses (or other geometry objects),
 `trace` offers a optimization package, which allows any numeric parameter of a geometry
-object to be changed after it's creation.
+object to be changed after its creation.
 
 To complement the use of `trace` in interactive sessions, a graphics package (using
 [matplotlib][plot]) is also provided. It allows the user to visualize scenes and screens
@@ -37,6 +37,31 @@ package.
 
 A suite of unit tests is available and can be run with `$ python tests.py`.
 
+## As per request from _'Submission of your code'_ section
+
+> You should also include in the README.txt file a list
+> of the files that are submitted.
+
+Here is this list:
+
+- `trace` [directory]
+  - `__init__.py`
+  - `_unsafe.py`
+  - `_utils.py`
+  - `geometry.py`
+  - `graphics.py`
+  - `materials.py`
+  - `optim.py`
+  - `rays.py`
+  - `scene.py`
+- `.gitattributes`
+- `.gitignore`
+- `demo_notebook.ipynb`
+- `lens.png`
+- `LICENSE`
+- `README.md`
+- `requirements.txt`
+- `tests.py`
 
 [plot]: https://matplotlib.org/
 [demo]: ./demo_notebook.ipynb
